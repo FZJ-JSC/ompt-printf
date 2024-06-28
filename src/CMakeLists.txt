@@ -33,6 +33,6 @@
 #
 
 add_library( EmptyOMPTTool SHARED )
-target_sources( EmptyOMPTTool PRIVATE ompt-tool.cpp )
+target_sources( EmptyOMPTTool PRIVATE tool.cpp)
 target_compile_options( EmptyOMPTTool PUBLIC ${OMPT_C_FLAGS} ${OMPT_CXX_FLAGS} )
 target_link_options( EmptyOMPTTool PUBLIC ${OMPT_LINK_FLAGS} )
