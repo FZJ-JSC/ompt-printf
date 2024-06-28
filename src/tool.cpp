@@ -33,12 +33,20 @@
  */
 
 #include <algorithm>
+#include <atomic>
 #include <cassert>
 #include <cstdlib>
 #include <sstream>
 #include <string>
 
 #include <omp-tools.h>
+
+/* Global variables */
+
+constexpr int32_t unknown_thread_id = -1;
+
+static __thread int32_t     thread_id = unknown_thread_id;
+static std::atomic<int32_t> next_thread_id { 0 };
 
 /* Helpers */
 
@@ -565,14 +573,21 @@ void
 callback_thread_begin( ompt_thread_t thread_type,
                        ompt_data_t*  thread_data )
 {
+    if ( mode > printf_mode::disable )
+    {
+        thread_id = next_thread_id++;
+    }
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n",
+                __FUNCTION__,
+                thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] thread_type = %s | thread_data = %p\n",
+        printf( "[%s] tid = %d | thread_type = %s | thread_data = %p\n",
                 __FUNCTION__,
+                thread_id,
                 thread2string( thread_type ).c_str(),
                 thread_data );
     }
@@ -584,12 +599,15 @@ callback_thread_end( ompt_data_t* thread_data )
 {
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n",
+                __FUNCTION__,
+                thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] thread_data = %p\n",
+        printf( "[%s] tid = %d | thread_data = %p\n",
                 __FUNCTION__,
+                thread_id,
                 thread_data );
     }
 }
@@ -605,13 +623,16 @@ callback_parallel_begin( ompt_data_t*        encountering_task_data,
 {
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n",
+                __FUNCTION__,
+                thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] encountering_task_data = %p | encountering_task_frame = %p | parallel_data = %p | "
+        printf( "[%s] tid = %d | encountering_task_data = %p | encountering_task_frame = %p | parallel_data = %p | "
                 "requested_parallelism = %u | flags = %s | codeptr_ra = %p\n",
                 __FUNCTION__,
+                thread_id,
                 encountering_task_data,
                 encountering_task_frame,
                 parallel_data,
@@ -630,12 +651,15 @@ callback_parallel_end( ompt_data_t* parallel_data,
 {
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n",
+                __FUNCTION__,
+                thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] parallel_data = %p | encountering_task_data = %p | flags = %s | codeptr_ra = %p\n",
+        printf( "[%s] tid = %d | parallel_data = %p | encountering_task_data = %p | flags = %s | codeptr_ra = %p\n",
                 __FUNCTION__,
+                thread_id,
                 parallel_data,
                 encountering_task_data,
                 parallel_flag2string( flags ).c_str(),
@@ -654,13 +678,16 @@ callback_task_create( ompt_data_t*        encountering_task_data,
 {
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n",
+                __FUNCTION__,
+                thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] encountering_task_data = %p | encountering_task_frame = %p | new_task_data = %p | "
+        printf( "[%s] tid = %d | encountering_task_data = %p | encountering_task_frame = %p | new_task_data = %p | "
                 "flags = %s | has_dependences = %d | codeptr_ra = %p\n",
                 __FUNCTION__,
+                thread_id,
                 encountering_task_data,
                 encountering_task_frame,
                 new_task_data,
@@ -678,12 +705,15 @@ callback_task_schedule( ompt_data_t*       prior_task_data,
 {
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n",
+                __FUNCTION__,
+                thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] prior_task_data = %p | prior_task_status = %s | next_task_data = %p\n",
+        printf( "[%s] tid = %d | prior_task_data = %p | prior_task_status = %s | next_task_data = %p\n",
                 __FUNCTION__,
+                thread_id,
                 prior_task_data,
                 task_status2string( prior_task_status ).c_str(),
                 next_task_data );
@@ -701,13 +731,16 @@ callback_implicit_task( ompt_scope_endpoint_t endpoint,
 {
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n",
+                __FUNCTION__,
+                thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] endpoint = %s | parallel_data = %p | task_data = %p | actual_parallelism = %u | "
+        printf( "[%s] tid = %d | endpoint = %s | parallel_data = %p | task_data = %p | actual_parallelism = %u | "
                 "index = %u | flags = %s\n",
                 __FUNCTION__,
+                thread_id,
                 endpoint2string( endpoint ).c_str(),
                 parallel_data,
                 task_data,
@@ -728,12 +761,15 @@ callback_sync_region_wait( ompt_sync_region_t    kind,
 {
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n",
+                __FUNCTION__,
+                thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] kind = %s | endpoint = %s | parallel_data = %p | task_data = %p | codeptr_ra = %p\n",
+        printf( "[%s] tid = %d | kind = %s | endpoint = %s | parallel_data = %p | task_data = %p | codeptr_ra = %p\n",
                 __FUNCTION__,
+                thread_id,
                 sync2string( kind ).c_str(),
                 endpoint2string( endpoint ).c_str(),
                 parallel_data,
@@ -750,12 +786,15 @@ callback_mutex_released( ompt_mutex_t   kind,
 {
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n",
+                __FUNCTION__,
+                thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] kind = %s | wait_id = %lu | codeptr_ra = %p\n",
+        printf( "[%s] tid = %d | kind = %s | wait_id = %lu | codeptr_ra = %p\n",
                 __FUNCTION__,
+                thread_id,
                 mutex2string( kind ).c_str(),
                 wait_id,
                 codeptr_ra );
@@ -770,12 +809,13 @@ callback_dependences( ompt_data_t*             task_data,
 {
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n", __FUNCTION__, thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] task_data = %p | deps = %p | ndeps = %d\n",
+        printf( "[%s] tid = %d | task_data = %p | deps = %p | ndeps = %d\n",
                 __FUNCTION__,
+                thread_id,
                 task_data,
                 deps,
                 ndeps );
@@ -789,12 +829,14 @@ callback_task_dependence( ompt_data_t* src_task_data,
 {
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n", __FUNCTION__,
+                thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] src_task_data = %p | sink_task_data = %p\n",
+        printf( "[%s] tid = %d | src_task_data = %p | sink_task_data = %p\n",
                 __FUNCTION__,
+                thread_id,
                 src_task_data,
                 sink_task_data );
     }
@@ -811,12 +853,14 @@ callback_work( ompt_work_t           work_type,
 {
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n", __FUNCTION__,
+                thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] work_type = %s | endpoint = %s | parallel_data = %p | task_data = %p | count = %lu | codeptr_ra = %p\n",
+        printf( "[%s] tid = %d | work_type = %s | endpoint = %s | parallel_data = %p | task_data = %p | count = %lu | codeptr_ra = %p\n",
                 __FUNCTION__,
+                thread_id,
                 work2string( work_type ).c_str(),
                 endpoint2string( endpoint ).c_str(),
                 parallel_data,
@@ -835,12 +879,14 @@ callback_masked( ompt_scope_endpoint_t endpoint,
 {
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n", __FUNCTION__,
+                thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] endpoint = %s | parallel_data = %p | task_data = %p | codeptr_ra = %p\n",
+        printf( "[%s] tid = %d | endpoint = %s | parallel_data = %p | task_data = %p | codeptr_ra = %p\n",
                 __FUNCTION__,
+                thread_id,
                 endpoint2string( endpoint ).c_str(),
                 parallel_data,
                 task_data,
@@ -858,12 +904,14 @@ callback_sync_region( ompt_sync_region_t    kind,
 {
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n", __FUNCTION__,
+                thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] kind = %s | endpoint = %s | parallel_data = %p | task_data = %p | codeptr_ra = %p\n",
+        printf( "[%s] tid = %d | kind = %s | endpoint = %s | parallel_data = %p | task_data = %p | codeptr_ra = %p\n",
                 __FUNCTION__,
+                thread_id,
                 sync2string( kind ).c_str(),
                 endpoint2string( endpoint ).c_str(),
                 parallel_data,
@@ -880,12 +928,14 @@ callback_lock_init( ompt_mutex_t   kind,
 {
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n", __FUNCTION__,
+                thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] kind = %s | wait_id = %lu | codeptr_ra = %p\n",
+        printf( "[%s] tid = %d | kind = %s | wait_id = %lu | codeptr_ra = %p\n",
                 __FUNCTION__,
+                thread_id,
                 mutex2string( kind ).c_str(),
                 wait_id,
                 codeptr_ra );
@@ -900,12 +950,14 @@ callback_lock_destroy( ompt_mutex_t   kind,
 {
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n", __FUNCTION__,
+                thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] kind = %s | wait_id = %lu | codeptr_ra = %p\n",
+        printf( "[%s] tid = %d | kind = %s | wait_id = %lu | codeptr_ra = %p\n",
                 __FUNCTION__,
+                thread_id,
                 mutex2string( kind ).c_str(),
                 wait_id,
                 codeptr_ra );
@@ -922,12 +974,14 @@ callback_mutex_acquire( ompt_mutex_t   kind,
 {
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n", __FUNCTION__,
+                thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] kind = %s | hint = %u | impl = %u | wait_id = %lu | codeptr_ra = %p\n",
+        printf( "[%s] tid = %d | kind = %s | hint = %u | impl = %u | wait_id = %lu | codeptr_ra = %p\n",
                 __FUNCTION__,
+                thread_id,
                 mutex2string( kind ).c_str(),
                 hint,
                 impl,
@@ -944,12 +998,14 @@ callback_mutex_acquired( ompt_mutex_t   kind,
 {
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n", __FUNCTION__,
+                thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] kind = %s | wait_id = %lu | codeptr_ra = %p\n",
+        printf( "[%s] tid = %d | kind = %s | wait_id = %lu | codeptr_ra = %p\n",
                 __FUNCTION__,
+                thread_id,
                 mutex2string( kind ).c_str(),
                 wait_id,
                 codeptr_ra );
@@ -964,12 +1020,14 @@ callback_nest_lock( ompt_scope_endpoint_t endpoint,
 {
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n", __FUNCTION__,
+                thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] endpoint = %s | wait_id = %lu | codeptr_ra = %p\n",
+        printf( "[%s] tid = %d | endpoint = %s | wait_id = %lu | codeptr_ra = %p\n",
                 __FUNCTION__,
+                thread_id,
                 endpoint2string( endpoint ).c_str(),
                 wait_id,
                 codeptr_ra );
@@ -983,12 +1041,16 @@ callback_flush( ompt_data_t* thread_data,
 {
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n", __FUNCTION__,
+                thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] thread_data = %p | codeptr_ra = %p\n",
-                __FUNCTION__, thread_data, codeptr_ra );
+        printf( "[%s] tid = %d | thread_data = %p | codeptr_ra = %p\n",
+                __FUNCTION__,
+                thread_id,
+                thread_data,
+                codeptr_ra );
     }
 }
 
@@ -1000,12 +1062,15 @@ callback_cancel( ompt_data_t* task_data,
 {
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n",
+                __FUNCTION__,
+                thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] task_data = %p | flags = %s | codeptr_ra = %p\n",
+        printf( "[%s] tid = %d | task_data = %p | flags = %s | codeptr_ra = %p\n",
                 __FUNCTION__,
+                thread_id,
                 task_data,
                 cancel2string( flags ).c_str(),
                 codeptr_ra );
@@ -1022,12 +1087,15 @@ callback_reduction( ompt_sync_region_t    kind,
 {
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n",
+                __FUNCTION__,
+                thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] kind = %s | endpoint = %s | parallel_data = %p | task_data = %p | codeptr_ra = %p\n",
+        printf( "[%s] tid = %d | kind = %s | endpoint = %s | parallel_data = %p | task_data = %p | codeptr_ra = %p\n",
                 __FUNCTION__,
+                thread_id,
                 sync2string( kind ).c_str(),
                 endpoint2string( endpoint ).c_str(),
                 parallel_data,
@@ -1045,12 +1113,15 @@ callback_dispatch( ompt_data_t*    parallel_data,
 {
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n",
+                __FUNCTION__,
+                thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] parallel_data = %p | task_data = %p | kind = %s | instance->ptr = %p\n",
+        printf( "[%s] tid = %d | parallel_data = %p | task_data = %p | kind = %s | instance->ptr = %p\n",
                 __FUNCTION__,
+                thread_id,
                 parallel_data,
                 task_data,
                 dispatch2string( kind ).c_str(),
@@ -1070,12 +1141,15 @@ callback_device_initialize( int                    device_num,
 {
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n",
+                __FUNCTION__,
+                thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] device_num = %d | type = %s | device = %p | lookup = %p | documentation = %s\n",
+        printf( "[%s] tid = %d | device_num = %d | type = %s | device = %p | lookup = %p | documentation = %s\n",
                 __FUNCTION__,
+                thread_id,
                 device_num,
                 type,
                 device,
@@ -1090,11 +1164,16 @@ callback_device_finalize( int device_num )
 {
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n",
+                __FUNCTION__,
+                thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] device_num = %d\n", __FUNCTION__, device_num );
+        printf( "[%s] tid = %d | device_num = %d\n",
+                __FUNCTION__,
+                thread_id,
+                device_num );
     }
 }
 
@@ -1111,13 +1190,16 @@ callback_device_load( int         device_num,
 {
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n",
+                __FUNCTION__,
+                thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] device_num = %d | filename = %s | offset_in_file = %ld | vma_in_file = %p | bytes = %lu "
+        printf( "[%s] tid = %d | device_num = %d | filename = %s | offset_in_file = %ld | vma_in_file = %p | bytes = %lu "
                 "| host_addr = %p | device_addr = %p | module_id = %lu\n",
                 __FUNCTION__,
+                thread_id,
                 device_num,
                 filename,
                 offset_in_file,
@@ -1136,11 +1218,17 @@ callback_device_unload( int      device_num,
 {
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n",
+                __FUNCTION__,
+                thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] device_num = %d | module_id = %lu\n", __FUNCTION__, device_num, module_id );
+        printf( "[%s] tid = %d | device_num = %d | module_id = %lu\n",
+                __FUNCTION__,
+                thread_id,
+                device_num,
+                module_id );
     }
 }
 
@@ -1156,13 +1244,16 @@ callback_target_map_emi( ompt_data_t*  target_data,
 {
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n",
+                __FUNCTION__,
+                thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] target_data = %p | nitems = %u | host_addr = %p | device_addr = %p | bytes = %p | "
+        printf( "[%s] tid = %d | target_data = %p | nitems = %u | host_addr = %p | device_addr = %p | bytes = %p | "
                 "mapping_flags = %p | codeptr_ra = %p\n",
                 __FUNCTION__,
+                thread_id,
                 target_data,
                 nitems,
                 host_addr,
@@ -1185,13 +1276,16 @@ callback_target_emi( ompt_target_t         kind,
 {
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n",
+                __FUNCTION__,
+                thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] kind = %s | endpoint = %s | device_num = %d | task_data = %p | target_task_data = %p | "
+        printf( "[%s] tid = %d | kind = %s | endpoint = %s | device_num = %d | task_data = %p | target_task_data = %p | "
                 "target_data = %p | codeptr_ra = %p\n",
                 __FUNCTION__,
+                thread_id,
                 target2string( kind ).c_str(),
                 endpoint2string( endpoint ).c_str(),
                 device_num,
@@ -1218,14 +1312,17 @@ callback_target_data_op_emi( ompt_scope_endpoint_t endpoint,
 {
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n",
+                __FUNCTION__,
+                thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] endpoint = %s | target_task_data = %p | target_data = %p | host_op_id = %p | optype = %s "
+        printf( "[%s] tid = %d | endpoint = %s | target_task_data = %p | target_data = %p | host_op_id = %p | optype = %s "
                 "| src_addr = %p | src_device_num = %d | dest_addr = %p | dest_device_num = %d | "
                 "bytes = %lu | codeptr_ra = %p\n",
                 __FUNCTION__,
+                thread_id,
                 endpoint2string( endpoint ).c_str(),
                 target_task_data,
                 target_data,
@@ -1249,12 +1346,15 @@ callback_target_submit_emi( ompt_scope_endpoint_t endpoint,
 {
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n",
+                __FUNCTION__,
+                thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] endpoint = %s | target_data = %p | host_op_id = %p | requested_num_teams = %u\n",
+        printf( "[%s] tid = %d | endpoint = %s | target_data = %p | host_op_id = %p | requested_num_teams = %u\n",
                 __FUNCTION__,
+                thread_id,
                 endpoint2string( endpoint ).c_str(),
                 target_data,
                 host_op_id,
@@ -1272,12 +1372,15 @@ tool_initialize( ompt_function_lookup_t lookup,
 {
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n",
+                __FUNCTION__,
+                thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] lookup = %p | initial_device_num = %d | tool_data = %p\n",
+        printf( "[%s] tid = %d | lookup = %p | initial_device_num = %d | tool_data = %p\n",
                 __FUNCTION__,
+                thread_id,
                 lookup,
                 initial_device_num,
                 tool_data );
@@ -1324,8 +1427,8 @@ tool_initialize( ompt_function_lookup_t lookup,
         ompt_set_result_t result = ompt_set_callback( cb.event, cb.callback );
         if ( mode >= printf_mode::callback )
         {
-            printf( "[%s] %18s = %s\n",
-                    __FUNCTION__,
+            printf( "[%s] tid = %d | %18s = %s\n",
+                    __FUNCTION__, thread_id,
                     cb.name,
                     set_result2string( result ).c_str() );
         }
@@ -1348,8 +1451,9 @@ tool_initialize( ompt_function_lookup_t lookup,
         ompt_set_result_t result = ompt_set_callback( cb.event, cb.callback );
         if ( mode >= printf_mode::callback )
         {
-            printf( "[%s] %18s = %s\n",
+            printf( "[%s] tid = %d | %18s = %s\n",
                     __FUNCTION__,
+                    thread_id,
                     cb.name,
                     set_result2string( result ).c_str() );
         }
@@ -1365,12 +1469,15 @@ tool_finalize( ompt_data_t* tool_data )
 {
     if ( mode == printf_mode::callback )
     {
-        printf( "[%s]\n", __FUNCTION__ );
+        printf( "[%s] tid = %d\n",
+                __FUNCTION__,
+                thread_id );
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        printf( "[%s] tool_data = %p\n",
+        printf( "[%s] tid = %d | tool_data = %p\n",
                 __FUNCTION__,
+                thread_id,
                 tool_data );
     }
 }
@@ -1399,14 +1506,16 @@ ompt_start_tool( unsigned int omp_version,
             tool.finalize   = &tool_finalize<printf_mode::disable>;
             break;
         case printf_mode::callback:
-            printf( "[%s]\n",
-                    __FUNCTION__ );
+            printf( "[%s] tid = %d\n",
+                    __FUNCTION__,
+                    thread_id );
             tool.initialize = &tool_initialize<printf_mode::callback>;
             tool.finalize   = &tool_finalize<printf_mode::callback>;
             break;
         case printf_mode::callback_include_args:
-            printf( "[%s] omp_version = %u | runtime_version = %s\n",
+            printf( "[%s] tid = %d | omp_version = %u | runtime_version = %s\n",
                     __FUNCTION__,
+                    thread_id,
                     omp_version,
                     runtime_version );
             tool.initialize = &tool_initialize<printf_mode::callback_include_args>;
