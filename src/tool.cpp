@@ -42,10 +42,11 @@
 
 /* Helper struct */
 
-typedef struct registration_data_t {
+typedef struct registration_data_t
+{
     ompt_callbacks_t event;
-    ompt_callback_t callback;
-    const char *name;
+    ompt_callback_t  callback;
+    const char*      name;
 } registration_data_t;
 
 /* printf conversion output */
@@ -59,8 +60,10 @@ typedef struct registration_data_t {
  *   ompt_set_always           = 5
  * } ompt_set_result_t; */
 static inline std::string
-set_result2string(const ompt_set_result_t t) {
-    switch (t) {
+set_result2string( const ompt_set_result_t t )
+{
+    switch ( t )
+    {
         case ompt_set_error:
             return "error";
         case ompt_set_never:
@@ -74,7 +77,7 @@ set_result2string(const ompt_set_result_t t) {
         case ompt_set_always:
             return "always";
         default:
-            assert(false && "Unknown ompt_set_result_t");
+            assert( false && "Unknown ompt_set_result_t" );
     }
 }
 
@@ -85,8 +88,10 @@ set_result2string(const ompt_set_result_t t) {
  *   ompt_thread_unknown  = 4
  * } ompt_thread_t; */
 static inline std::string
-thread2string(const ompt_thread_t t) {
-    switch (t) {
+thread2string( const ompt_thread_t t )
+{
+    switch ( t )
+    {
         case ompt_thread_initial:
             return "initial";
         case ompt_thread_worker:
@@ -96,7 +101,7 @@ thread2string(const ompt_thread_t t) {
         case ompt_thread_unknown:
             return "unknown";
         default:
-            assert(false && "Unknown ompt_thread_t");
+            assert( false && "Unknown ompt_thread_t" );
     }
 }
 
@@ -107,24 +112,31 @@ thread2string(const ompt_thread_t t) {
  *   ompt_parallel_team            = 0x80000000
  * } ompt_parallel_flag_t; */
 static inline std::string
-parallel_flag2string(uint32_t flags) {
+parallel_flag2string( uint32_t flags )
+{
     std::stringstream result;
-    if (flags & ompt_parallel_invoker_program) {
+    if ( flags & ompt_parallel_invoker_program )
+    {
         result << "program";
         flags -= ompt_parallel_invoker_program;
-    } else if (flags & ompt_parallel_invoker_runtime) {
+    }
+    else if ( flags & ompt_parallel_invoker_runtime )
+    {
         result << "runtime";
         flags -= ompt_parallel_invoker_runtime;
     }
 
-    if (flags & ompt_parallel_league) {
+    if ( flags & ompt_parallel_league )
+    {
         result << "_league";
         flags -= ompt_parallel_league;
-    } else if (flags & ompt_parallel_team) {
+    }
+    else if ( flags & ompt_parallel_team )
+    {
         result << "_team";
         flags -= ompt_parallel_team;
     }
-    assert(flags == 0 && "Unknown ompt_parallel_flag_t");
+    assert( flags == 0 && "Unknown ompt_parallel_flag_t" );
     return result.str();
 }
 
@@ -141,42 +153,61 @@ parallel_flag2string(uint32_t flags) {
  *   ompt_task_merged     = 0x80000000
  * } ompt_task_flag_t; */
 static inline std::string
-task_flag2string(uint32_t flags) {
+task_flag2string( uint32_t flags )
+{
     std::stringstream result;
-    if (flags & ompt_task_initial) {
+    if ( flags & ompt_task_initial )
+    {
         result << "initial";
         flags -= ompt_task_initial;
-    } else if (flags & ompt_task_implicit) {
+    }
+    else if ( flags & ompt_task_implicit )
+    {
         result << "implicit";
         flags -= ompt_task_implicit;
-    } else if (flags & ompt_task_explicit) {
+    }
+    else if ( flags & ompt_task_explicit )
+    {
         result << "explicit";
         flags -= ompt_task_explicit;
-    } else if (flags & ompt_task_target) {
+    }
+    else if ( flags & ompt_task_target )
+    {
         result << "_target";
         flags -= ompt_task_target;
-    } else if (flags & ompt_task_taskwait) {
+    }
+    else if ( flags & ompt_task_taskwait )
+    {
         result << "_taskwait";
         flags -= ompt_task_taskwait;
     }
 
-    if (flags & ompt_task_undeferred) {
+    if ( flags & ompt_task_undeferred )
+    {
         result << "_undeferred";
         flags -= ompt_task_undeferred;
-    } else if (flags & ompt_task_untied) {
+    }
+    else if ( flags & ompt_task_untied )
+    {
         result << "_untied";
         flags -= ompt_task_untied;
-    } else if (flags & ompt_task_final) {
+    }
+    else if ( flags & ompt_task_final )
+    {
         result << "_final";
         flags -= ompt_task_final;
-    } else if (flags & ompt_task_mergeable) {
+    }
+    else if ( flags & ompt_task_mergeable )
+    {
         result << "_mergeable";
         flags -= ompt_task_mergeable;
-    } else if (flags & ompt_task_merged) {
+    }
+    else if ( flags & ompt_task_merged )
+    {
         result << "_merged";
         flags -= ompt_task_merged;
     }
-    assert(flags == 0 && "Unknown ompt_task_flag_t");
+    assert( flags == 0 && "Unknown ompt_task_flag_t" );
     return result.str();
 }
 
@@ -186,8 +217,10 @@ task_flag2string(uint32_t flags) {
  *   ompt_scope_beginend = 3
  * } ompt_scope_endpoint_t; */
 static inline std::string
-endpoint2string(ompt_scope_endpoint_t t) {
-    switch (t) {
+endpoint2string( ompt_scope_endpoint_t t )
+{
+    switch ( t )
+    {
         case ompt_scope_begin:
             return "begin";
         case ompt_scope_end:
@@ -195,7 +228,7 @@ endpoint2string(ompt_scope_endpoint_t t) {
         case ompt_scope_beginend:
             return "beginend";
         default:
-            assert(false && "Unknown ompt_scope_endpoint_t");
+            assert( false && "Unknown ompt_scope_endpoint_t" );
     }
 }
 
@@ -210,8 +243,10 @@ endpoint2string(ompt_scope_endpoint_t t) {
  *   ompt_taskwait_complete  = 8
  * } ompt_task_status_t; */
 static inline std::string
-task_status2string(ompt_task_status_t t) {
-    switch (t) {
+task_status2string( ompt_task_status_t t )
+{
+    switch ( t )
+    {
         case ompt_task_complete:
             return "complete";
         case ompt_task_yield:
@@ -229,7 +264,7 @@ task_status2string(ompt_task_status_t t) {
         case ompt_taskwait_complete:
             return "taskwait_complete";
         default:
-            assert(false && "Unknown ompt_task_status_t");
+            assert( false && "Unknown ompt_task_status_t" );
     }
 }
 
@@ -243,8 +278,10 @@ task_status2string(ompt_task_status_t t) {
  *     ompt_mutex_ordered        = 7
  * } ompt_mutex_t; */
 static inline std::string
-mutex2string(ompt_mutex_t t) {
-    switch (t) {
+mutex2string( ompt_mutex_t t )
+{
+    switch ( t )
+    {
         case ompt_mutex_lock:
             return "lock";
         case ompt_mutex_test_lock:
@@ -260,7 +297,7 @@ mutex2string(ompt_mutex_t t) {
         case ompt_mutex_ordered:
             return "ordered";
         default:
-            assert(false && "Unknown ompt_mutex_t");
+            assert( false && "Unknown ompt_mutex_t" );
     }
 }
 
@@ -272,8 +309,10 @@ mutex2string(ompt_mutex_t t) {
  *   ompt_dispatch_distribute_chunk = 5
  * } ompt_dispatch_t; */
 static inline std::string
-dispatch2string(ompt_dispatch_t t) {
-    switch (t) {
+dispatch2string( ompt_dispatch_t t )
+{
+    switch ( t )
+    {
         case ompt_dispatch_iteration:
             return "iteration";
         case ompt_dispatch_section:
@@ -285,47 +324,60 @@ dispatch2string(ompt_dispatch_t t) {
         case ompt_dispatch_distribute_chunk:
             return "distribute_chunk";
         default:
-            assert(false && "Unknown ompt_dispatch_t");
+            assert( false && "Unknown ompt_dispatch_t" );
     }
 }
 
 /* typedef enum ompt_cancel_flag_t {
-*    ompt_cancel_parallel       = 0x01,
-*    ompt_cancel_sections       = 0x02,
-*    ompt_cancel_loop           = 0x04,
-*    ompt_cancel_taskgroup      = 0x08,
-*    ompt_cancel_activated      = 0x10,
-*    ompt_cancel_detected       = 0x20,
-*    ompt_cancel_discarded_task = 0x40
-*} ompt_cancel_flag_t; */
+ *    ompt_cancel_parallel       = 0x01,
+ *    ompt_cancel_sections       = 0x02,
+ *    ompt_cancel_loop           = 0x04,
+ *    ompt_cancel_taskgroup      = 0x08,
+ *    ompt_cancel_activated      = 0x10,
+ *    ompt_cancel_detected       = 0x20,
+ *    ompt_cancel_discarded_task = 0x40
+ *} ompt_cancel_flag_t; */
 static inline std::string
-cancel2string(int t) {
+cancel2string( int t )
+{
     std::stringstream result;
-    if (t & ompt_cancel_activated) {
+    if ( t & ompt_cancel_activated )
+    {
         result << "activated";
         t -= ompt_cancel_activated;
-    } else if (t & ompt_cancel_detected) {
+    }
+    else if ( t & ompt_cancel_detected )
+    {
         result << "detected";
         t -= ompt_cancel_detected;
     }
 
-    if (t & ompt_cancel_parallel) {
+    if ( t & ompt_cancel_parallel )
+    {
         result << "_parallel";
         t -= ompt_cancel_parallel;
-    } else if (t & ompt_cancel_sections) {
+    }
+    else if ( t & ompt_cancel_sections )
+    {
         result << "_sections";
         t -= ompt_cancel_sections;
-    } else if (t & ompt_cancel_loop) {
+    }
+    else if ( t & ompt_cancel_loop )
+    {
         result << "_loop";
         t -= ompt_cancel_loop;
-    } else if (t & ompt_cancel_taskgroup) {
+    }
+    else if ( t & ompt_cancel_taskgroup )
+    {
         result << "_taskgroup";
         t -= ompt_cancel_taskgroup;
-    } else if (t & ompt_cancel_discarded_task) {
+    }
+    else if ( t & ompt_cancel_discarded_task )
+    {
         result << "_discarded_task";
         t -= ompt_cancel_discarded_task;
     }
-    assert(t == 0 && "Unknown ompt_cancel_flag_t");
+    assert( t == 0 && "Unknown ompt_cancel_flag_t" );
     return result.str();
 }
 
@@ -344,8 +396,10 @@ cancel2string(int t) {
  *     ompt_work_loop_other      = 13
  * } ompt_work_t; */
 static inline std::string
-work2string(ompt_work_t t) {
-    switch (t) {
+work2string( ompt_work_t t )
+{
+    switch ( t )
+    {
         case ompt_work_loop:
             return "loop";
         case ompt_work_sections:
@@ -371,7 +425,7 @@ work2string(ompt_work_t t) {
         case ompt_work_loop_other:
             return "loop_other";
         default:
-            assert(false && "Unknown ompt_work_t");
+            assert( false && "Unknown ompt_work_t" );
     }
 }
 
@@ -388,9 +442,9 @@ work2string(ompt_work_t t) {
  *     ompt_sync_region_barrier_teams              = 10
  * } ompt_sync_region_t; */
 static inline std::string
-sync2string(ompt_sync_region_t t)
+sync2string( ompt_sync_region_t t )
 {
-    switch(t)
+    switch ( t )
     {
         case ompt_sync_region_barrier:
             return "barrier";
@@ -413,7 +467,7 @@ sync2string(ompt_sync_region_t t)
         case ompt_sync_region_barrier_teams:
             return "barrier_teams";
         default:
-            assert(false && "Unknown ompt_sync_region_t");
+            assert( false && "Unknown ompt_sync_region_t" );
     }
 }
 
@@ -430,9 +484,9 @@ sync2string(ompt_sync_region_t t)
  *     ompt_target_data_delete_async               = 20
  * } ompt_target_data_op_t; */
 static inline std::string
-data_op2string(ompt_target_data_op_t t)
+data_op2string( ompt_target_data_op_t t )
 {
-    switch(t)
+    switch ( t )
     {
         case ompt_target_data_alloc:
             return "data_alloc";
@@ -455,7 +509,7 @@ data_op2string(ompt_target_data_op_t t)
         case ompt_target_data_delete_async:
             return "data_delete_async";
         default:
-            assert(false && "Unknown ompt_target_data_op_t");
+            assert( false && "Unknown ompt_target_data_op_t" );
     }
 }
 
@@ -470,9 +524,9 @@ data_op2string(ompt_target_data_op_t t)
  *   ompt_target_update_nowait           = 12
  * } ompt_target_t; */
 static inline std::string
-target2string(ompt_target_t t)
+target2string( ompt_target_t t )
 {
-    switch(t)
+    switch ( t )
     {
         case ompt_target:
             return "target";
@@ -491,7 +545,7 @@ target2string(ompt_target_t t)
         case ompt_target_update_nowait:
             return "target_update_nowait";
         default:
-            assert(false && "Unknown ompt_target_t");
+            assert( false && "Unknown ompt_target_t" );
     }
 }
 
@@ -499,361 +553,407 @@ target2string(ompt_target_t t)
 
 template<bool enable_printf>
 void
-callback_thread_begin(ompt_thread_t thread_type,
-                      ompt_data_t *thread_data) {
-    if (enable_printf) {
-        printf("[%s] thread_type = %s | thread_data = %p\n",
-               __FUNCTION__,
-               thread2string(thread_type).c_str(),
-               thread_data);
+callback_thread_begin( ompt_thread_t thread_type,
+                       ompt_data_t*  thread_data )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] thread_type = %s | thread_data = %p\n",
+                __FUNCTION__,
+                thread2string( thread_type ).c_str(),
+                thread_data );
     }
 }
 
 template<bool enable_printf>
 void
-callback_thread_end(ompt_data_t *thread_data) {
-    if (enable_printf) {
-        printf("[%s] thread_data = %p\n",
-               __FUNCTION__,
-               thread_data);
+callback_thread_end( ompt_data_t* thread_data )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] thread_data = %p\n",
+                __FUNCTION__,
+                thread_data );
     }
 }
 
 template<bool enable_printf>
 void
-callback_parallel_begin(ompt_data_t *encountering_task_data,
-                        const ompt_frame_t *encountering_task_frame,
-                        ompt_data_t *parallel_data,
-                        unsigned int requested_parallelism,
-                        int flags,
-                        const void *codeptr_ra) {
-    if (enable_printf) {
-        printf("[%s] encountering_task_data = %p | encountering_task_frame = %p | parallel_data = %p | "
-               "requested_parallelism = %u | flags = %s | codeptr_ra = %p\n",
-               __FUNCTION__,
-               encountering_task_data,
-               encountering_task_frame,
-               parallel_data,
-               requested_parallelism,
-               parallel_flag2string(flags).c_str(),
-               codeptr_ra);
+callback_parallel_begin( ompt_data_t*        encountering_task_data,
+                         const ompt_frame_t* encountering_task_frame,
+                         ompt_data_t*        parallel_data,
+                         unsigned int        requested_parallelism,
+                         int                 flags,
+                         const void*         codeptr_ra )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] encountering_task_data = %p | encountering_task_frame = %p | parallel_data = %p | "
+                "requested_parallelism = %u | flags = %s | codeptr_ra = %p\n",
+                __FUNCTION__,
+                encountering_task_data,
+                encountering_task_frame,
+                parallel_data,
+                requested_parallelism,
+                parallel_flag2string( flags ).c_str(),
+                codeptr_ra );
     }
 }
 
 template<bool enable_printf>
 void
-callback_parallel_end(ompt_data_t *parallel_data,
-                      ompt_data_t *encountering_task_data,
-                      int flags,
-                      const void *codeptr_ra) {
-    if (enable_printf) {
-        printf("[%s] parallel_data = %p | encountering_task_data = %p | flags = %s | codeptr_ra = %p\n",
-               __FUNCTION__,
-               parallel_data,
-               encountering_task_data,
-               parallel_flag2string(flags).c_str(),
-               codeptr_ra);
+callback_parallel_end( ompt_data_t* parallel_data,
+                       ompt_data_t* encountering_task_data,
+                       int          flags,
+                       const void*  codeptr_ra )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] parallel_data = %p | encountering_task_data = %p | flags = %s | codeptr_ra = %p\n",
+                __FUNCTION__,
+                parallel_data,
+                encountering_task_data,
+                parallel_flag2string( flags ).c_str(),
+                codeptr_ra );
     }
 }
 
 template<bool enable_printf>
 void
-callback_task_create(ompt_data_t *encountering_task_data,
-                     const ompt_frame_t *encountering_task_frame,
-                     ompt_data_t *new_task_data,
-                     int flags,
-                     int has_dependences,
-                     const void *codeptr_ra) {
-    if (enable_printf) {
-        printf("[%s] encountering_task_data = %p | encountering_task_frame = %p | new_task_data = %p | "
-               "flags = %s | has_dependences = %d | codeptr_ra = %p\n",
-               __FUNCTION__,
-               encountering_task_data,
-               encountering_task_frame,
-               new_task_data,
-               task_flag2string(flags).c_str(),
-               has_dependences,
-               codeptr_ra);
+callback_task_create( ompt_data_t*        encountering_task_data,
+                      const ompt_frame_t* encountering_task_frame,
+                      ompt_data_t*        new_task_data,
+                      int                 flags,
+                      int                 has_dependences,
+                      const void*         codeptr_ra )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] encountering_task_data = %p | encountering_task_frame = %p | new_task_data = %p | "
+                "flags = %s | has_dependences = %d | codeptr_ra = %p\n",
+                __FUNCTION__,
+                encountering_task_data,
+                encountering_task_frame,
+                new_task_data,
+                task_flag2string( flags ).c_str(),
+                has_dependences,
+                codeptr_ra );
     }
 }
 
 template<bool enable_printf>
 void
-callback_task_schedule(ompt_data_t *prior_task_data,
-                       ompt_task_status_t prior_task_status,
-                       ompt_data_t *next_task_data) {
-    if (enable_printf) {
-        printf("[%s] prior_task_data = %p | prior_task_status = %s | next_task_data = %p\n",
-               __FUNCTION__,
-               prior_task_data,
-               task_status2string(prior_task_status).c_str(),
-               next_task_data);
+callback_task_schedule( ompt_data_t*       prior_task_data,
+                        ompt_task_status_t prior_task_status,
+                        ompt_data_t*       next_task_data )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] prior_task_data = %p | prior_task_status = %s | next_task_data = %p\n",
+                __FUNCTION__,
+                prior_task_data,
+                task_status2string( prior_task_status ).c_str(),
+                next_task_data );
     }
 }
 
 template<bool enable_printf>
 void
-callback_implicit_task(ompt_scope_endpoint_t endpoint,
-                       ompt_data_t *parallel_data,
-                       ompt_data_t *task_data,
-                       unsigned int actual_parallelism,
-                       unsigned int index,
-                       int flags) {
-    if (enable_printf) {
-        printf("[%s] endpoint = %s | parallel_data = %p | task_data = %p | actual_parallelism = %u | "
-               "index = %u | flags = %s\n",
-               __FUNCTION__,
-               endpoint2string(endpoint).c_str(),
-               parallel_data,
-               task_data,
-               actual_parallelism,
-               index,
-               task_flag2string(flags).c_str());
+callback_implicit_task( ompt_scope_endpoint_t endpoint,
+                        ompt_data_t*          parallel_data,
+                        ompt_data_t*          task_data,
+                        unsigned int          actual_parallelism,
+                        unsigned int          index,
+                        int                   flags )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] endpoint = %s | parallel_data = %p | task_data = %p | actual_parallelism = %u | "
+                "index = %u | flags = %s\n",
+                __FUNCTION__,
+                endpoint2string( endpoint ).c_str(),
+                parallel_data,
+                task_data,
+                actual_parallelism,
+                index,
+                task_flag2string( flags ).c_str() );
     }
 }
 
 
 template<bool enable_printf>
 void
-callback_sync_region_wait(ompt_sync_region_t kind,
-                          ompt_scope_endpoint_t endpoint,
-                          ompt_data_t *parallel_data,
-                          ompt_data_t *task_data,
-                          const void *codeptr_ra) {
-    if (enable_printf) {
-        printf("[%s] kind = %s | endpoint = %s | parallel_data = %p | task_data = %p | codeptr_ra = %p\n",
-               __FUNCTION__,
-               sync2string(kind).c_str(),
-               endpoint2string(endpoint).c_str(),
-               parallel_data,
-               task_data,
-               codeptr_ra);
+callback_sync_region_wait( ompt_sync_region_t    kind,
+                           ompt_scope_endpoint_t endpoint,
+                           ompt_data_t*          parallel_data,
+                           ompt_data_t*          task_data,
+                           const void*           codeptr_ra )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] kind = %s | endpoint = %s | parallel_data = %p | task_data = %p | codeptr_ra = %p\n",
+                __FUNCTION__,
+                sync2string( kind ).c_str(),
+                endpoint2string( endpoint ).c_str(),
+                parallel_data,
+                task_data,
+                codeptr_ra );
     }
 }
 
 template<bool enable_printf>
 void
-callback_mutex_released(ompt_mutex_t kind,
-                        ompt_wait_id_t wait_id,
-                        const void *codeptr_ra) {
-    if (enable_printf) {
-        printf("[%s] kind = %s | wait_id = %lu | codeptr_ra = %p\n",
-               __FUNCTION__,
-               mutex2string(kind).c_str(),
-               wait_id,
-               codeptr_ra);
+callback_mutex_released( ompt_mutex_t   kind,
+                         ompt_wait_id_t wait_id,
+                         const void*    codeptr_ra )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] kind = %s | wait_id = %lu | codeptr_ra = %p\n",
+                __FUNCTION__,
+                mutex2string( kind ).c_str(),
+                wait_id,
+                codeptr_ra );
     }
 }
 
 template<bool enable_printf>
 void
-callback_dependences(ompt_data_t *task_data,
-                     const ompt_dependence_t *deps,
-                     int ndeps) {
-    if (enable_printf) {
-        printf("[%s] task_data = %p | deps = %p | ndeps = %d\n",
-               __FUNCTION__,
-               task_data,
-               deps,
-               ndeps);
+callback_dependences( ompt_data_t*             task_data,
+                      const ompt_dependence_t* deps,
+                      int                      ndeps )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] task_data = %p | deps = %p | ndeps = %d\n",
+                __FUNCTION__,
+                task_data,
+                deps,
+                ndeps );
     }
 }
 
 template<bool enable_printf>
 void
-callback_task_dependence(ompt_data_t *src_task_data,
-                         ompt_data_t *sink_task_data) {
-    if (enable_printf) {
-        printf("[%s] src_task_data = %p | sink_task_data = %p\n",
-               __FUNCTION__,
-               src_task_data,
-               sink_task_data);
+callback_task_dependence( ompt_data_t* src_task_data,
+                          ompt_data_t* sink_task_data )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] src_task_data = %p | sink_task_data = %p\n",
+                __FUNCTION__,
+                src_task_data,
+                sink_task_data );
     }
 }
 
 template<bool enable_printf>
 void
-callback_work(ompt_work_t work_type,
-              ompt_scope_endpoint_t endpoint,
-              ompt_data_t *parallel_data,
-              ompt_data_t *task_data,
-              uint64_t count,
-              const void *codeptr_ra) {
-    if (enable_printf) {
-        printf("[%s] work_type = %s | endpoint = %s | parallel_data = %p | task_data = %p | count = %lu | codeptr_ra = %p\n",
-               __FUNCTION__,
-               work2string(work_type).c_str(),
-               endpoint2string(endpoint).c_str(),
-               parallel_data,
-               task_data,
-               count,
-               codeptr_ra);
+callback_work( ompt_work_t           work_type,
+               ompt_scope_endpoint_t endpoint,
+               ompt_data_t*          parallel_data,
+               ompt_data_t*          task_data,
+               uint64_t              count,
+               const void*           codeptr_ra )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] work_type = %s | endpoint = %s | parallel_data = %p | task_data = %p | count = %lu | codeptr_ra = %p\n",
+                __FUNCTION__,
+                work2string( work_type ).c_str(),
+                endpoint2string( endpoint ).c_str(),
+                parallel_data,
+                task_data,
+                count,
+                codeptr_ra );
     }
 }
 
 template<bool enable_printf>
 void
-callback_masked(ompt_scope_endpoint_t endpoint,
-                ompt_data_t *parallel_data,
-                ompt_data_t *task_data,
-                const void *codeptr_ra) {
-    if (enable_printf) {
-        printf("[%s] endpoint = %s | parallel_data = %p | task_data = %p | codeptr_ra = %p\n",
-               __FUNCTION__,
-               endpoint2string(endpoint).c_str(),
-               parallel_data,
-               task_data,
-               codeptr_ra);
+callback_masked( ompt_scope_endpoint_t endpoint,
+                 ompt_data_t*          parallel_data,
+                 ompt_data_t*          task_data,
+                 const void*           codeptr_ra )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] endpoint = %s | parallel_data = %p | task_data = %p | codeptr_ra = %p\n",
+                __FUNCTION__,
+                endpoint2string( endpoint ).c_str(),
+                parallel_data,
+                task_data,
+                codeptr_ra );
     }
 }
 
 template<bool enable_printf>
 void
-callback_sync_region(ompt_sync_region_t kind,
-                     ompt_scope_endpoint_t endpoint,
-                     ompt_data_t *parallel_data,
-                     ompt_data_t *task_data,
-                     const void *codeptr_ra) {
-    if (enable_printf) {
-        printf("[%s] kind = %s | endpoint = %s | parallel_data = %p | task_data = %p | codeptr_ra = %p\n",
-               __FUNCTION__,
-               sync2string(kind).c_str(),
-               endpoint2string(endpoint).c_str(),
-               parallel_data,
-               task_data,
-               codeptr_ra);
+callback_sync_region( ompt_sync_region_t    kind,
+                      ompt_scope_endpoint_t endpoint,
+                      ompt_data_t*          parallel_data,
+                      ompt_data_t*          task_data,
+                      const void*           codeptr_ra )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] kind = %s | endpoint = %s | parallel_data = %p | task_data = %p | codeptr_ra = %p\n",
+                __FUNCTION__,
+                sync2string( kind ).c_str(),
+                endpoint2string( endpoint ).c_str(),
+                parallel_data,
+                task_data,
+                codeptr_ra );
     }
 }
 
 template<bool enable_printf>
 void
-callback_lock_init(ompt_mutex_t kind,
-                   ompt_wait_id_t wait_id,
-                   const void *codeptr_ra) {
-    if (enable_printf) {
-        printf("[%s] kind = %s | wait_id = %lu | codeptr_ra = %p\n",
-               __FUNCTION__,
-               mutex2string(kind).c_str(),
-               wait_id,
-               codeptr_ra);
+callback_lock_init( ompt_mutex_t   kind,
+                    ompt_wait_id_t wait_id,
+                    const void*    codeptr_ra )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] kind = %s | wait_id = %lu | codeptr_ra = %p\n",
+                __FUNCTION__,
+                mutex2string( kind ).c_str(),
+                wait_id,
+                codeptr_ra );
     }
 }
 
 template<bool enable_printf>
 void
-callback_lock_destroy(ompt_mutex_t kind,
-                      ompt_wait_id_t wait_id,
-                      const void *codeptr_ra) {
-    if (enable_printf) {
-        printf("[%s] kind = %s | wait_id = %lu | codeptr_ra = %p\n",
-               __FUNCTION__,
-               mutex2string(kind).c_str(),
-               wait_id,
-               codeptr_ra);
-    }
-}
-
-template<bool enable_printf>
-void
-callback_mutex_acquire(ompt_mutex_t kind,
-                       unsigned int hint,
-                       unsigned int impl,
+callback_lock_destroy( ompt_mutex_t   kind,
                        ompt_wait_id_t wait_id,
-                       const void *codeptr_ra) {
-    if (enable_printf) {
-        printf("[%s] kind = %s | hint = %u | impl = %u | wait_id = %lu | codeptr_ra = %p\n",
-               __FUNCTION__,
-               mutex2string(kind).c_str(),
-               hint,
-               impl,
-               wait_id,
-               codeptr_ra);
+                       const void*    codeptr_ra )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] kind = %s | wait_id = %lu | codeptr_ra = %p\n",
+                __FUNCTION__,
+                mutex2string( kind ).c_str(),
+                wait_id,
+                codeptr_ra );
     }
 }
 
 template<bool enable_printf>
 void
-callback_mutex_acquired(ompt_mutex_t kind,
+callback_mutex_acquire( ompt_mutex_t   kind,
+                        unsigned int   hint,
+                        unsigned int   impl,
                         ompt_wait_id_t wait_id,
-                        const void *codeptr_ra) {
-    if (enable_printf) {
-        printf("[%s] kind = %s | wait_id = %lu | codeptr_ra = %p\n",
-               __FUNCTION__,
-               mutex2string(kind).c_str(),
-               wait_id,
-               codeptr_ra);
+                        const void*    codeptr_ra )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] kind = %s | hint = %u | impl = %u | wait_id = %lu | codeptr_ra = %p\n",
+                __FUNCTION__,
+                mutex2string( kind ).c_str(),
+                hint,
+                impl,
+                wait_id,
+                codeptr_ra );
     }
 }
 
 template<bool enable_printf>
 void
-callback_nest_lock(ompt_scope_endpoint_t endpoint,
-                   ompt_wait_id_t wait_id,
-                   const void *codeptr_ra) {
-    if (enable_printf) {
-        printf("[%s] endpoint = %s | wait_id = %lu | codeptr_ra = %p\n",
-               __FUNCTION__,
-               endpoint2string(endpoint).c_str(),
-               wait_id,
-               codeptr_ra);
+callback_mutex_acquired( ompt_mutex_t   kind,
+                         ompt_wait_id_t wait_id,
+                         const void*    codeptr_ra )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] kind = %s | wait_id = %lu | codeptr_ra = %p\n",
+                __FUNCTION__,
+                mutex2string( kind ).c_str(),
+                wait_id,
+                codeptr_ra );
     }
 }
 
 template<bool enable_printf>
 void
-callback_flush(ompt_data_t *thread_data,
-               const void *codeptr_ra) {
-    if (enable_printf) {
-        printf("[%s] thread_data = %p | codeptr_ra = %p\n",
-               __FUNCTION__, thread_data, codeptr_ra);
+callback_nest_lock( ompt_scope_endpoint_t endpoint,
+                    ompt_wait_id_t        wait_id,
+                    const void*           codeptr_ra )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] endpoint = %s | wait_id = %lu | codeptr_ra = %p\n",
+                __FUNCTION__,
+                endpoint2string( endpoint ).c_str(),
+                wait_id,
+                codeptr_ra );
     }
 }
 
 template<bool enable_printf>
 void
-callback_cancel(ompt_data_t *task_data,
-                int flags,
-                const void *codeptr_ra) {
-    if (enable_printf) {
-        printf("[%s] task_data = %p | flags = %s | codeptr_ra = %p\n",
-               __FUNCTION__,
-               task_data,
-               cancel2string(flags).c_str(),
-               codeptr_ra);
+callback_flush( ompt_data_t* thread_data,
+                const void*  codeptr_ra )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] thread_data = %p | codeptr_ra = %p\n",
+                __FUNCTION__, thread_data, codeptr_ra );
     }
 }
 
 template<bool enable_printf>
 void
-callback_reduction(ompt_sync_region_t kind,
-                   ompt_scope_endpoint_t endpoint,
-                   ompt_data_t *parallel_data,
-                   ompt_data_t *task_data,
-                   const void *codeptr_ra) {
-    if (enable_printf) {
-        printf("[%s] kind = %s | endpoint = %s | parallel_data = %p | task_data = %p | codeptr_ra = %p\n",
-               __FUNCTION__,
-               sync2string(kind).c_str(),
-               endpoint2string(endpoint).c_str(),
-               parallel_data,
-               task_data,
-               codeptr_ra);
+callback_cancel( ompt_data_t* task_data,
+                 int          flags,
+                 const void*  codeptr_ra )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] task_data = %p | flags = %s | codeptr_ra = %p\n",
+                __FUNCTION__,
+                task_data,
+                cancel2string( flags ).c_str(),
+                codeptr_ra );
     }
 }
 
 template<bool enable_printf>
 void
-callback_dispatch(ompt_data_t *parallel_data,
-                  ompt_data_t *task_data,
-                  ompt_dispatch_t kind,
-                  ompt_data_t instance) {
-    if (enable_printf) {
-        printf("[%s] parallel_data = %p | task_data = %p | kind = %s | instance->ptr = %p\n",
-               __FUNCTION__,
-               parallel_data,
-               task_data,
-               dispatch2string(kind).c_str(),
-               instance.ptr);
+callback_reduction( ompt_sync_region_t    kind,
+                    ompt_scope_endpoint_t endpoint,
+                    ompt_data_t*          parallel_data,
+                    ompt_data_t*          task_data,
+                    const void*           codeptr_ra )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] kind = %s | endpoint = %s | parallel_data = %p | task_data = %p | codeptr_ra = %p\n",
+                __FUNCTION__,
+                sync2string( kind ).c_str(),
+                endpoint2string( endpoint ).c_str(),
+                parallel_data,
+                task_data,
+                codeptr_ra );
+    }
+}
+
+template<bool enable_printf>
+void
+callback_dispatch( ompt_data_t*    parallel_data,
+                   ompt_data_t*    task_data,
+                   ompt_dispatch_t kind,
+                   ompt_data_t     instance )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] parallel_data = %p | task_data = %p | kind = %s | instance->ptr = %p\n",
+                __FUNCTION__,
+                parallel_data,
+                task_data,
+                dispatch2string( kind ).c_str(),
+                instance.ptr );
     }
 }
 
@@ -861,155 +961,171 @@ callback_dispatch(ompt_data_t *parallel_data,
 
 template<bool enable_printf>
 void
-callback_device_initialize(int device_num,
-                           const char *type,
-                           ompt_device_t *device,
-                           ompt_function_lookup_t lookup,
-                           const char *documentation) {
-    if (enable_printf) {
-        printf("[%s] device_num = %d | type = %s | device = %p | lookup = %p | documentation = %s\n",
-               __FUNCTION__,
-               device_num,
-               type,
-               device,
-               lookup,
-               documentation);
+callback_device_initialize( int                    device_num,
+                            const char*            type,
+                            ompt_device_t*         device,
+                            ompt_function_lookup_t lookup,
+                            const char*            documentation )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] device_num = %d | type = %s | device = %p | lookup = %p | documentation = %s\n",
+                __FUNCTION__,
+                device_num,
+                type,
+                device,
+                lookup,
+                documentation );
     }
 }
 
 template<bool enable_printf>
 void
-callback_device_finalize(int device_num) {
-    if (enable_printf) {
-        printf("[%s] device_num = %d\n", __FUNCTION__, device_num);
+callback_device_finalize( int device_num )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] device_num = %d\n", __FUNCTION__, device_num );
     }
 }
 
 template<bool enable_printf>
 void
-callback_device_load(int device_num,
-                     const char *filename,
-                     int64_t offset_in_file,
-                     void *vma_in_file,
-                     size_t bytes,
-                     void *host_addr,
-                     void *device_addr,
-                     uint64_t module_id) {
-    if (enable_printf) {
-        printf("[%s] device_num = %d | filename = %s | offset_in_file = %ld | vma_in_file = %p | bytes = %lu "
-               "| host_addr = %p | device_addr = %p | module_id = %lu\n",
-               __FUNCTION__,
-               device_num,
-               filename,
-               offset_in_file,
-               vma_in_file,
-               bytes,
-               host_addr,
-               device_addr,
-               module_id);
+callback_device_load( int         device_num,
+                      const char* filename,
+                      int64_t     offset_in_file,
+                      void*       vma_in_file,
+                      size_t      bytes,
+                      void*       host_addr,
+                      void*       device_addr,
+                      uint64_t    module_id )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] device_num = %d | filename = %s | offset_in_file = %ld | vma_in_file = %p | bytes = %lu "
+                "| host_addr = %p | device_addr = %p | module_id = %lu\n",
+                __FUNCTION__,
+                device_num,
+                filename,
+                offset_in_file,
+                vma_in_file,
+                bytes,
+                host_addr,
+                device_addr,
+                module_id );
     }
 }
 
 template<bool enable_printf>
 void
-callback_device_unload(int device_num,
-                       uint64_t module_id) {
-    if (enable_printf) {
-        printf("[%s] device_num = %d | module_id = %lu\n", __FUNCTION__, device_num, module_id);
+callback_device_unload( int      device_num,
+                        uint64_t module_id )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] device_num = %d | module_id = %lu\n", __FUNCTION__, device_num, module_id );
     }
 }
 
 template<bool enable_printf>
 void
-callback_target_map_emi(ompt_data_t *target_data,
-                        unsigned int nitems,
-                        void **host_addr,
-                        void **device_addr,
-                        size_t *bytes,
-                        unsigned int *mapping_flags,
-                        const void *codeptr_ra) {
-    if (enable_printf) {
-        printf("[%s] target_data = %p | nitems = %u | host_addr = %p | device_addr = %p | bytes = %p | "
-               "mapping_flags = %p | codeptr_ra = %p\n",
-               __FUNCTION__,
-               target_data,
-               nitems,
-               host_addr,
-               device_addr,
-               bytes,
-               mapping_flags,
-               codeptr_ra);
+callback_target_map_emi( ompt_data_t*  target_data,
+                         unsigned int  nitems,
+                         void**        host_addr,
+                         void**        device_addr,
+                         size_t*       bytes,
+                         unsigned int* mapping_flags,
+                         const void*   codeptr_ra )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] target_data = %p | nitems = %u | host_addr = %p | device_addr = %p | bytes = %p | "
+                "mapping_flags = %p | codeptr_ra = %p\n",
+                __FUNCTION__,
+                target_data,
+                nitems,
+                host_addr,
+                device_addr,
+                bytes,
+                mapping_flags,
+                codeptr_ra );
     }
 }
 
 template<bool enable_printf>
 void
-callback_target_emi(ompt_target_t kind,
-                    ompt_scope_endpoint_t endpoint,
-                    int device_num,
-                    ompt_data_t *task_data,
-                    ompt_data_t *target_task_data,
-                    ompt_data_t *target_data,
-                    const void *codeptr_ra) {
-    if (enable_printf) {
-        printf("[%s] kind = %s | endpoint = %s | device_num = %d | task_data = %p | target_task_data = %p | "
-               "target_data = %p | codeptr_ra = %p\n",
-               __FUNCTION__,
-               target2string(kind).c_str(),
-               endpoint2string(endpoint).c_str(),
-               device_num,
-               task_data,
-               target_task_data,
-               target_data,
-               codeptr_ra);
+callback_target_emi( ompt_target_t         kind,
+                     ompt_scope_endpoint_t endpoint,
+                     int                   device_num,
+                     ompt_data_t*          task_data,
+                     ompt_data_t*          target_task_data,
+                     ompt_data_t*          target_data,
+                     const void*           codeptr_ra )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] kind = %s | endpoint = %s | device_num = %d | task_data = %p | target_task_data = %p | "
+                "target_data = %p | codeptr_ra = %p\n",
+                __FUNCTION__,
+                target2string( kind ).c_str(),
+                endpoint2string( endpoint ).c_str(),
+                device_num,
+                task_data,
+                target_task_data,
+                target_data,
+                codeptr_ra );
     }
 }
 
 template<bool enable_printf>
 void
-callback_target_data_op_emi(ompt_scope_endpoint_t endpoint,
-                            ompt_data_t *target_task_data,
-                            ompt_data_t *target_data,
-                            ompt_id_t *host_op_id,
-                            ompt_target_data_op_t optype,
-                            void *src_addr,
-                            int src_device_num,
-                            void *dest_addr,
-                            int dest_device_num,
-                            size_t bytes,
-                            const void *codeptr_ra) {
-    if (enable_printf) {
-        printf("[%s] endpoint = %s | target_task_data = %p | target_data = %p | host_op_id = %p | optype = %s "
-               "| src_addr = %p | src_device_num = %d | dest_addr = %p | dest_device_num = %d | "
-               "bytes = %lu | codeptr_ra = %p\n",
-               __FUNCTION__,
-               endpoint2string(endpoint).c_str(),
-               target_task_data,
-               target_data,
-               host_op_id,
-               data_op2string(optype).c_str(),
-               src_addr,
-               src_device_num,
-               dest_addr,
-               dest_device_num,
-               bytes,
-               codeptr_ra);
+callback_target_data_op_emi( ompt_scope_endpoint_t endpoint,
+                             ompt_data_t*          target_task_data,
+                             ompt_data_t*          target_data,
+                             ompt_id_t*            host_op_id,
+                             ompt_target_data_op_t optype,
+                             void*                 src_addr,
+                             int                   src_device_num,
+                             void*                 dest_addr,
+                             int                   dest_device_num,
+                             size_t                bytes,
+                             const void*           codeptr_ra )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] endpoint = %s | target_task_data = %p | target_data = %p | host_op_id = %p | optype = %s "
+                "| src_addr = %p | src_device_num = %d | dest_addr = %p | dest_device_num = %d | "
+                "bytes = %lu | codeptr_ra = %p\n",
+                __FUNCTION__,
+                endpoint2string( endpoint ).c_str(),
+                target_task_data,
+                target_data,
+                host_op_id,
+                data_op2string( optype ).c_str(),
+                src_addr,
+                src_device_num,
+                dest_addr,
+                dest_device_num,
+                bytes,
+                codeptr_ra );
     }
 }
 
 template<bool enable_printf>
 void
-callback_target_submit_emi(ompt_scope_endpoint_t endpoint,
-                           ompt_data_t *target_data,
-                           ompt_id_t *host_op_id,
-                           unsigned int requested_num_teams) {
-    if (enable_printf) {
-        printf("[%s] endpoint = %s | target_data = %p | host_op_id = %p | requested_num_teams = %u\n",
-               __FUNCTION__,
-               endpoint2string(endpoint).c_str(),
-               target_data,
-               host_op_id,
-               requested_num_teams);
+callback_target_submit_emi( ompt_scope_endpoint_t endpoint,
+                            ompt_data_t*          target_data,
+                            ompt_id_t*            host_op_id,
+                            unsigned int          requested_num_teams )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] endpoint = %s | target_data = %p | host_op_id = %p | requested_num_teams = %u\n",
+                __FUNCTION__,
+                endpoint2string( endpoint ).c_str(),
+                target_data,
+                host_op_id,
+                requested_num_teams );
     }
 }
 
@@ -1017,73 +1133,79 @@ callback_target_submit_emi(ompt_scope_endpoint_t endpoint,
 
 template<bool enable_printf>
 int
-tool_initialize(ompt_function_lookup_t lookup,
-                int initial_device_num,
-                ompt_data_t *tool_data) {
-    if (enable_printf) {
-        printf("[%s] lookup = %p | initial_device_num = %d | tool_data = %p\n",
-               __FUNCTION__,
-               lookup,
-               initial_device_num,
-               tool_data);
+tool_initialize( ompt_function_lookup_t lookup,
+                 int                    initial_device_num,
+                 ompt_data_t*           tool_data )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] lookup = %p | initial_device_num = %d | tool_data = %p\n",
+                __FUNCTION__,
+                lookup,
+                initial_device_num,
+                tool_data );
     }
 
     /* ompt_function_lookup_t allows us to look-up runtime functions and register
      * callbacks which will get invoked on OpenMP events by the runtime. */
-    auto ompt_set_callback = (ompt_set_callback_t) lookup("ompt_set_callback");
-    assert(ompt_set_callback && "Could not find ompt_set_callback");
+    auto ompt_set_callback = ( ompt_set_callback_t )lookup( "ompt_set_callback" );
+    assert( ompt_set_callback && "Could not find ompt_set_callback" );
 
     /* Register callbacks for the host side */
-#define CALLBACK(name) { ompt_callback_ ## name, ( ompt_callback_t )&callback_ ## name<enable_printf>, #name }
+#define CALLBACK( name ) { ompt_callback_ ## name, ( ompt_callback_t )&callback_ ## name<enable_printf>, #name }
     const std::initializer_list<registration_data_t> host_callbacks = {
-            CALLBACK(thread_begin),
-            CALLBACK(thread_end),
-            CALLBACK(parallel_begin),
-            CALLBACK(parallel_end),
-            CALLBACK(task_create),
-            CALLBACK(task_schedule),
-            CALLBACK(implicit_task),
-            CALLBACK(sync_region_wait),
-            CALLBACK(mutex_released),
-            CALLBACK(dependences),
-            CALLBACK(task_dependence),
-            CALLBACK(work),
-            CALLBACK(masked),
-            CALLBACK(sync_region),
-            CALLBACK(lock_init),
-            CALLBACK(lock_destroy),
-            CALLBACK(mutex_acquire),
-            CALLBACK(mutex_acquired),
-            CALLBACK(nest_lock),
-            CALLBACK(flush),
-            CALLBACK(cancel),
-            CALLBACK(reduction),
-            CALLBACK(dispatch),
+        CALLBACK( thread_begin ),
+        CALLBACK( thread_end ),
+        CALLBACK( parallel_begin ),
+        CALLBACK( parallel_end ),
+        CALLBACK( task_create ),
+        CALLBACK( task_schedule ),
+        CALLBACK( implicit_task ),
+        CALLBACK( sync_region_wait ),
+        CALLBACK( mutex_released ),
+        CALLBACK( dependences ),
+        CALLBACK( task_dependence ),
+        CALLBACK( work ),
+        CALLBACK( masked ),
+        CALLBACK( sync_region ),
+        CALLBACK( lock_init ),
+        CALLBACK( lock_destroy ),
+        CALLBACK( mutex_acquire ),
+        CALLBACK( mutex_acquired ),
+        CALLBACK( nest_lock ),
+        CALLBACK( flush ),
+        CALLBACK( cancel ),
+        CALLBACK( reduction ),
+        CALLBACK( dispatch ),
     };
 
-    for (const auto &cb: host_callbacks) {
-        ompt_set_result_t result = ompt_set_callback(cb.event, cb.callback);
-        if (enable_printf) {
-            printf("[%s] %18s = %s\n", __FUNCTION__, cb.name, set_result2string(result).c_str());
+    for ( const auto& cb: host_callbacks )
+    {
+        ompt_set_result_t result = ompt_set_callback( cb.event, cb.callback );
+        if ( enable_printf )
+        {
+            printf( "[%s] %18s = %s\n", __FUNCTION__, cb.name, set_result2string( result ).c_str() );
         }
     }
 
     /* Register callbacks for the host side accelerator */
     const std::initializer_list<registration_data_t> host_accel_callbacks = {
-            CALLBACK(device_initialize),
-            CALLBACK(device_finalize),
-            CALLBACK(device_load),
-            CALLBACK(device_unload),
-            CALLBACK(target_emi),
-            CALLBACK(target_map_emi),
-            CALLBACK(target_data_op_emi),
-            CALLBACK(target_submit_emi)
+        CALLBACK( device_initialize ),
+        CALLBACK( device_finalize ),
+        CALLBACK( device_load ),
+        CALLBACK( device_unload ),
+        CALLBACK( target_emi ),
+        CALLBACK( target_map_emi ),
+        CALLBACK( target_data_op_emi ),
+        CALLBACK( target_submit_emi )
     };
 
-    for (const auto &cb: host_accel_callbacks) {
-        ompt_set_result_t result = ompt_set_callback(cb.event, cb.callback);
-        if (enable_printf) {
-            printf("[%s] %18s = %s\n", __FUNCTION__, cb.name, set_result2string(result).c_str());
+    for ( const auto& cb: host_accel_callbacks )
+    {
+        ompt_set_result_t result = ompt_set_callback( cb.event, cb.callback );
+        if ( enable_printf )
+        {
+            printf( "[%s] %18s = %s\n", __FUNCTION__, cb.name, set_result2string( result ).c_str() );
         }
     }
 #undef CALLBACK
@@ -1093,39 +1215,48 @@ tool_initialize(ompt_function_lookup_t lookup,
 
 template<bool enable_printf>
 void
-tool_finalize(ompt_data_t *tool_data) {
-    if (enable_printf) {
-        printf("[%s] tool_data = %p\n", __FUNCTION__, tool_data);
+tool_finalize( ompt_data_t* tool_data )
+{
+    if ( enable_printf )
+    {
+        printf( "[%s] tool_data = %p\n", __FUNCTION__, tool_data );
     }
 }
 
 extern "C" ompt_start_tool_result_t *
-ompt_start_tool(unsigned int omp_version,
-                const char *runtime_version) {
+ompt_start_tool( unsigned int omp_version,
+                 const char* runtime_version )
+{
     bool enable_printf = false;
     /* Check state of OMPT_ENABLE_PRINTF environment variable.
      * If true / yes / 1, enable the tool. Otherwise, disable it. */
-    const char *env_enable_printf_c = std::getenv("OMPT_ENABLE_PRINTF");
-    std::string env_enable_printf = env_enable_printf_c ? env_enable_printf_c : "false";
-    std::transform(env_enable_printf.begin(), env_enable_printf.end(), env_enable_printf.begin(),
-                   [](unsigned char c) { return std::tolower(c); });
-    if (env_enable_printf == "yes" || env_enable_printf == "1" || env_enable_printf == "true") {
+    const char* env_enable_printf_c = std::getenv( "OMPT_ENABLE_PRINTF" );
+    std::string env_enable_printf   = env_enable_printf_c ? env_enable_printf_c : "false";
+    std::transform( env_enable_printf.begin(), env_enable_printf.end(), env_enable_printf.begin(),
+                    [ ]( unsigned char c ) {
+        return std::tolower( c );
+    } );
+    if ( env_enable_printf == "yes" || env_enable_printf == "1" || env_enable_printf == "true" )
+    {
         enable_printf = true;
     }
 
     static ompt_start_tool_result_t tool;
-    if (enable_printf) {
-        printf("[%s] omp_version = %d | runtime_version = %s\n",
-               __FUNCTION__,
-               omp_version,
-               runtime_version);
-        tool = {tool_initialize<true>,
-                tool_finalize<true>,
-                ompt_data_none};
-    } else {
-        tool = {tool_initialize<false>,
-                tool_finalize<false>,
-                ompt_data_none};
+    if ( enable_printf )
+    {
+        printf( "[%s] omp_version = %d | runtime_version = %s\n",
+                __FUNCTION__,
+                omp_version,
+                runtime_version );
+        tool = { tool_initialize<true>,
+                 tool_finalize<true>,
+                 ompt_data_none };
+    }
+    else
+    {
+        tool = { tool_initialize<false>,
+                 tool_finalize<false>,
+                 ompt_data_none };
     }
 
     return &tool;
