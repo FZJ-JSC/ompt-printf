@@ -40,7 +40,16 @@
 
 #include <omp-tools.h>
 
-/* Helper struct */
+/* Helpers */
+
+enum class printf_mode : int
+{
+    disable               = 0,
+    callback              = 1,
+    callback_include_args = 2,
+
+    num_modes
+};
 
 typedef struct registration_data_t
 {
@@ -551,12 +560,16 @@ target2string( ompt_target_t t )
 
 /* Host side callbacks */
 
-template<bool enable_printf>
+template<printf_mode mode>
 void
 callback_thread_begin( ompt_thread_t thread_type,
                        ompt_data_t*  thread_data )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
     {
         printf( "[%s] thread_type = %s | thread_data = %p\n",
                 __FUNCTION__,
@@ -565,11 +578,15 @@ callback_thread_begin( ompt_thread_t thread_type,
     }
 }
 
-template<bool enable_printf>
+template<printf_mode mode>
 void
 callback_thread_end( ompt_data_t* thread_data )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
     {
         printf( "[%s] thread_data = %p\n",
                 __FUNCTION__,
@@ -577,7 +594,7 @@ callback_thread_end( ompt_data_t* thread_data )
     }
 }
 
-template<bool enable_printf>
+template<printf_mode mode>
 void
 callback_parallel_begin( ompt_data_t*        encountering_task_data,
                          const ompt_frame_t* encountering_task_frame,
@@ -586,7 +603,11 @@ callback_parallel_begin( ompt_data_t*        encountering_task_data,
                          int                 flags,
                          const void*         codeptr_ra )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
     {
         printf( "[%s] encountering_task_data = %p | encountering_task_frame = %p | parallel_data = %p | "
                 "requested_parallelism = %u | flags = %s | codeptr_ra = %p\n",
@@ -600,14 +621,18 @@ callback_parallel_begin( ompt_data_t*        encountering_task_data,
     }
 }
 
-template<bool enable_printf>
+template<printf_mode mode>
 void
 callback_parallel_end( ompt_data_t* parallel_data,
                        ompt_data_t* encountering_task_data,
                        int          flags,
                        const void*  codeptr_ra )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
     {
         printf( "[%s] parallel_data = %p | encountering_task_data = %p | flags = %s | codeptr_ra = %p\n",
                 __FUNCTION__,
@@ -618,7 +643,7 @@ callback_parallel_end( ompt_data_t* parallel_data,
     }
 }
 
-template<bool enable_printf>
+template<printf_mode mode>
 void
 callback_task_create( ompt_data_t*        encountering_task_data,
                       const ompt_frame_t* encountering_task_frame,
@@ -627,7 +652,11 @@ callback_task_create( ompt_data_t*        encountering_task_data,
                       int                 has_dependences,
                       const void*         codeptr_ra )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
     {
         printf( "[%s] encountering_task_data = %p | encountering_task_frame = %p | new_task_data = %p | "
                 "flags = %s | has_dependences = %d | codeptr_ra = %p\n",
@@ -641,13 +670,17 @@ callback_task_create( ompt_data_t*        encountering_task_data,
     }
 }
 
-template<bool enable_printf>
+template<printf_mode mode>
 void
 callback_task_schedule( ompt_data_t*       prior_task_data,
                         ompt_task_status_t prior_task_status,
                         ompt_data_t*       next_task_data )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
     {
         printf( "[%s] prior_task_data = %p | prior_task_status = %s | next_task_data = %p\n",
                 __FUNCTION__,
@@ -657,7 +690,7 @@ callback_task_schedule( ompt_data_t*       prior_task_data,
     }
 }
 
-template<bool enable_printf>
+template<printf_mode mode>
 void
 callback_implicit_task( ompt_scope_endpoint_t endpoint,
                         ompt_data_t*          parallel_data,
@@ -666,7 +699,11 @@ callback_implicit_task( ompt_scope_endpoint_t endpoint,
                         unsigned int          index,
                         int                   flags )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
     {
         printf( "[%s] endpoint = %s | parallel_data = %p | task_data = %p | actual_parallelism = %u | "
                 "index = %u | flags = %s\n",
@@ -681,7 +718,7 @@ callback_implicit_task( ompt_scope_endpoint_t endpoint,
 }
 
 
-template<bool enable_printf>
+template<printf_mode mode>
 void
 callback_sync_region_wait( ompt_sync_region_t    kind,
                            ompt_scope_endpoint_t endpoint,
@@ -689,7 +726,11 @@ callback_sync_region_wait( ompt_sync_region_t    kind,
                            ompt_data_t*          task_data,
                            const void*           codeptr_ra )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
     {
         printf( "[%s] kind = %s | endpoint = %s | parallel_data = %p | task_data = %p | codeptr_ra = %p\n",
                 __FUNCTION__,
@@ -701,13 +742,17 @@ callback_sync_region_wait( ompt_sync_region_t    kind,
     }
 }
 
-template<bool enable_printf>
+template<printf_mode mode>
 void
 callback_mutex_released( ompt_mutex_t   kind,
                          ompt_wait_id_t wait_id,
                          const void*    codeptr_ra )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
     {
         printf( "[%s] kind = %s | wait_id = %lu | codeptr_ra = %p\n",
                 __FUNCTION__,
@@ -717,13 +762,17 @@ callback_mutex_released( ompt_mutex_t   kind,
     }
 }
 
-template<bool enable_printf>
+template<printf_mode mode>
 void
 callback_dependences( ompt_data_t*             task_data,
                       const ompt_dependence_t* deps,
                       int                      ndeps )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
     {
         printf( "[%s] task_data = %p | deps = %p | ndeps = %d\n",
                 __FUNCTION__,
@@ -733,12 +782,16 @@ callback_dependences( ompt_data_t*             task_data,
     }
 }
 
-template<bool enable_printf>
+template<printf_mode mode>
 void
 callback_task_dependence( ompt_data_t* src_task_data,
                           ompt_data_t* sink_task_data )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
     {
         printf( "[%s] src_task_data = %p | sink_task_data = %p\n",
                 __FUNCTION__,
@@ -747,7 +800,7 @@ callback_task_dependence( ompt_data_t* src_task_data,
     }
 }
 
-template<bool enable_printf>
+template<printf_mode mode>
 void
 callback_work( ompt_work_t           work_type,
                ompt_scope_endpoint_t endpoint,
@@ -756,7 +809,11 @@ callback_work( ompt_work_t           work_type,
                uint64_t              count,
                const void*           codeptr_ra )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
     {
         printf( "[%s] work_type = %s | endpoint = %s | parallel_data = %p | task_data = %p | count = %lu | codeptr_ra = %p\n",
                 __FUNCTION__,
@@ -769,14 +826,18 @@ callback_work( ompt_work_t           work_type,
     }
 }
 
-template<bool enable_printf>
+template<printf_mode mode>
 void
 callback_masked( ompt_scope_endpoint_t endpoint,
                  ompt_data_t*          parallel_data,
                  ompt_data_t*          task_data,
                  const void*           codeptr_ra )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
     {
         printf( "[%s] endpoint = %s | parallel_data = %p | task_data = %p | codeptr_ra = %p\n",
                 __FUNCTION__,
@@ -787,7 +848,7 @@ callback_masked( ompt_scope_endpoint_t endpoint,
     }
 }
 
-template<bool enable_printf>
+template<printf_mode mode>
 void
 callback_sync_region( ompt_sync_region_t    kind,
                       ompt_scope_endpoint_t endpoint,
@@ -795,7 +856,11 @@ callback_sync_region( ompt_sync_region_t    kind,
                       ompt_data_t*          task_data,
                       const void*           codeptr_ra )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
     {
         printf( "[%s] kind = %s | endpoint = %s | parallel_data = %p | task_data = %p | codeptr_ra = %p\n",
                 __FUNCTION__,
@@ -807,13 +872,17 @@ callback_sync_region( ompt_sync_region_t    kind,
     }
 }
 
-template<bool enable_printf>
+template<printf_mode mode>
 void
 callback_lock_init( ompt_mutex_t   kind,
                     ompt_wait_id_t wait_id,
                     const void*    codeptr_ra )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
     {
         printf( "[%s] kind = %s | wait_id = %lu | codeptr_ra = %p\n",
                 __FUNCTION__,
@@ -823,13 +892,17 @@ callback_lock_init( ompt_mutex_t   kind,
     }
 }
 
-template<bool enable_printf>
+template<printf_mode mode>
 void
 callback_lock_destroy( ompt_mutex_t   kind,
                        ompt_wait_id_t wait_id,
                        const void*    codeptr_ra )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
     {
         printf( "[%s] kind = %s | wait_id = %lu | codeptr_ra = %p\n",
                 __FUNCTION__,
@@ -839,7 +912,7 @@ callback_lock_destroy( ompt_mutex_t   kind,
     }
 }
 
-template<bool enable_printf>
+template<printf_mode mode>
 void
 callback_mutex_acquire( ompt_mutex_t   kind,
                         unsigned int   hint,
@@ -847,7 +920,11 @@ callback_mutex_acquire( ompt_mutex_t   kind,
                         ompt_wait_id_t wait_id,
                         const void*    codeptr_ra )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
     {
         printf( "[%s] kind = %s | hint = %u | impl = %u | wait_id = %lu | codeptr_ra = %p\n",
                 __FUNCTION__,
@@ -859,13 +936,17 @@ callback_mutex_acquire( ompt_mutex_t   kind,
     }
 }
 
-template<bool enable_printf>
+template<printf_mode mode>
 void
 callback_mutex_acquired( ompt_mutex_t   kind,
                          ompt_wait_id_t wait_id,
                          const void*    codeptr_ra )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
     {
         printf( "[%s] kind = %s | wait_id = %lu | codeptr_ra = %p\n",
                 __FUNCTION__,
@@ -875,13 +956,17 @@ callback_mutex_acquired( ompt_mutex_t   kind,
     }
 }
 
-template<bool enable_printf>
+template<printf_mode mode>
 void
 callback_nest_lock( ompt_scope_endpoint_t endpoint,
                     ompt_wait_id_t        wait_id,
                     const void*           codeptr_ra )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
     {
         printf( "[%s] endpoint = %s | wait_id = %lu | codeptr_ra = %p\n",
                 __FUNCTION__,
@@ -891,25 +976,33 @@ callback_nest_lock( ompt_scope_endpoint_t endpoint,
     }
 }
 
-template<bool enable_printf>
+template<printf_mode mode>
 void
 callback_flush( ompt_data_t* thread_data,
                 const void*  codeptr_ra )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
     {
         printf( "[%s] thread_data = %p | codeptr_ra = %p\n",
                 __FUNCTION__, thread_data, codeptr_ra );
     }
 }
 
-template<bool enable_printf>
+template<printf_mode mode>
 void
 callback_cancel( ompt_data_t* task_data,
                  int          flags,
                  const void*  codeptr_ra )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
     {
         printf( "[%s] task_data = %p | flags = %s | codeptr_ra = %p\n",
                 __FUNCTION__,
@@ -919,7 +1012,7 @@ callback_cancel( ompt_data_t* task_data,
     }
 }
 
-template<bool enable_printf>
+template<printf_mode mode>
 void
 callback_reduction( ompt_sync_region_t    kind,
                     ompt_scope_endpoint_t endpoint,
@@ -927,7 +1020,11 @@ callback_reduction( ompt_sync_region_t    kind,
                     ompt_data_t*          task_data,
                     const void*           codeptr_ra )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
     {
         printf( "[%s] kind = %s | endpoint = %s | parallel_data = %p | task_data = %p | codeptr_ra = %p\n",
                 __FUNCTION__,
@@ -939,14 +1036,18 @@ callback_reduction( ompt_sync_region_t    kind,
     }
 }
 
-template<bool enable_printf>
+template<printf_mode mode>
 void
 callback_dispatch( ompt_data_t*    parallel_data,
                    ompt_data_t*    task_data,
                    ompt_dispatch_t kind,
                    ompt_data_t     instance )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
     {
         printf( "[%s] parallel_data = %p | task_data = %p | kind = %s | instance->ptr = %p\n",
                 __FUNCTION__,
@@ -959,7 +1060,7 @@ callback_dispatch( ompt_data_t*    parallel_data,
 
 /* Host side accelerator callbacks */
 
-template<bool enable_printf>
+template<printf_mode mode>
 void
 callback_device_initialize( int                    device_num,
                             const char*            type,
@@ -967,7 +1068,11 @@ callback_device_initialize( int                    device_num,
                             ompt_function_lookup_t lookup,
                             const char*            documentation )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
     {
         printf( "[%s] device_num = %d | type = %s | device = %p | lookup = %p | documentation = %s\n",
                 __FUNCTION__,
@@ -979,17 +1084,21 @@ callback_device_initialize( int                    device_num,
     }
 }
 
-template<bool enable_printf>
+template<printf_mode mode>
 void
 callback_device_finalize( int device_num )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
     {
         printf( "[%s] device_num = %d\n", __FUNCTION__, device_num );
     }
 }
 
-template<bool enable_printf>
+template<printf_mode mode>
 void
 callback_device_load( int         device_num,
                       const char* filename,
@@ -1000,7 +1109,11 @@ callback_device_load( int         device_num,
                       void*       device_addr,
                       uint64_t    module_id )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
     {
         printf( "[%s] device_num = %d | filename = %s | offset_in_file = %ld | vma_in_file = %p | bytes = %lu "
                 "| host_addr = %p | device_addr = %p | module_id = %lu\n",
@@ -1016,18 +1129,22 @@ callback_device_load( int         device_num,
     }
 }
 
-template<bool enable_printf>
+template<printf_mode mode>
 void
 callback_device_unload( int      device_num,
                         uint64_t module_id )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
     {
         printf( "[%s] device_num = %d | module_id = %lu\n", __FUNCTION__, device_num, module_id );
     }
 }
 
-template<bool enable_printf>
+template<printf_mode mode>
 void
 callback_target_map_emi( ompt_data_t*  target_data,
                          unsigned int  nitems,
@@ -1037,7 +1154,11 @@ callback_target_map_emi( ompt_data_t*  target_data,
                          unsigned int* mapping_flags,
                          const void*   codeptr_ra )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
     {
         printf( "[%s] target_data = %p | nitems = %u | host_addr = %p | device_addr = %p | bytes = %p | "
                 "mapping_flags = %p | codeptr_ra = %p\n",
@@ -1052,7 +1173,7 @@ callback_target_map_emi( ompt_data_t*  target_data,
     }
 }
 
-template<bool enable_printf>
+template<printf_mode mode>
 void
 callback_target_emi( ompt_target_t         kind,
                      ompt_scope_endpoint_t endpoint,
@@ -1062,7 +1183,11 @@ callback_target_emi( ompt_target_t         kind,
                      ompt_data_t*          target_data,
                      const void*           codeptr_ra )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
     {
         printf( "[%s] kind = %s | endpoint = %s | device_num = %d | task_data = %p | target_task_data = %p | "
                 "target_data = %p | codeptr_ra = %p\n",
@@ -1077,7 +1202,7 @@ callback_target_emi( ompt_target_t         kind,
     }
 }
 
-template<bool enable_printf>
+template<printf_mode mode>
 void
 callback_target_data_op_emi( ompt_scope_endpoint_t endpoint,
                              ompt_data_t*          target_task_data,
@@ -1091,7 +1216,11 @@ callback_target_data_op_emi( ompt_scope_endpoint_t endpoint,
                              size_t                bytes,
                              const void*           codeptr_ra )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
     {
         printf( "[%s] endpoint = %s | target_task_data = %p | target_data = %p | host_op_id = %p | optype = %s "
                 "| src_addr = %p | src_device_num = %d | dest_addr = %p | dest_device_num = %d | "
@@ -1111,14 +1240,18 @@ callback_target_data_op_emi( ompt_scope_endpoint_t endpoint,
     }
 }
 
-template<bool enable_printf>
+template<printf_mode mode>
 void
 callback_target_submit_emi( ompt_scope_endpoint_t endpoint,
                             ompt_data_t*          target_data,
                             ompt_id_t*            host_op_id,
                             unsigned int          requested_num_teams )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
     {
         printf( "[%s] endpoint = %s | target_data = %p | host_op_id = %p | requested_num_teams = %u\n",
                 __FUNCTION__,
@@ -1131,13 +1264,17 @@ callback_target_submit_emi( ompt_scope_endpoint_t endpoint,
 
 /* Initialization / Finalization sequence */
 
-template<bool enable_printf>
+template<printf_mode mode>
 int
 tool_initialize( ompt_function_lookup_t lookup,
                  int                    initial_device_num,
                  ompt_data_t*           tool_data )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
     {
         printf( "[%s] lookup = %p | initial_device_num = %d | tool_data = %p\n",
                 __FUNCTION__,
@@ -1152,7 +1289,10 @@ tool_initialize( ompt_function_lookup_t lookup,
     assert( ompt_set_callback && "Could not find ompt_set_callback" );
 
     /* Register callbacks for the host side */
-#define CALLBACK( name ) { ompt_callback_ ## name, ( ompt_callback_t )&callback_ ## name<enable_printf>, #name }
+#define CALLBACK( name )                                                       \
+    {                                                                          \
+        ompt_callback_##name, ( ompt_callback_t )&callback_##name<mode>, #name \
+    }
     const std::initializer_list<registration_data_t> host_callbacks = {
         CALLBACK( thread_begin ),
         CALLBACK( thread_end ),
@@ -1182,9 +1322,12 @@ tool_initialize( ompt_function_lookup_t lookup,
     for ( const auto& cb: host_callbacks )
     {
         ompt_set_result_t result = ompt_set_callback( cb.event, cb.callback );
-        if ( enable_printf )
+        if ( mode >= printf_mode::callback )
         {
-            printf( "[%s] %18s = %s\n", __FUNCTION__, cb.name, set_result2string( result ).c_str() );
+            printf( "[%s] %18s = %s\n",
+                    __FUNCTION__,
+                    cb.name,
+                    set_result2string( result ).c_str() );
         }
     }
 
@@ -1203,9 +1346,12 @@ tool_initialize( ompt_function_lookup_t lookup,
     for ( const auto& cb: host_accel_callbacks )
     {
         ompt_set_result_t result = ompt_set_callback( cb.event, cb.callback );
-        if ( enable_printf )
+        if ( mode >= printf_mode::callback )
         {
-            printf( "[%s] %18s = %s\n", __FUNCTION__, cb.name, set_result2string( result ).c_str() );
+            printf( "[%s] %18s = %s\n",
+                    __FUNCTION__,
+                    cb.name,
+                    set_result2string( result ).c_str() );
         }
     }
 #undef CALLBACK
@@ -1213,13 +1359,19 @@ tool_initialize( ompt_function_lookup_t lookup,
     return true; /* non-zero indicates success */
 }
 
-template<bool enable_printf>
+template<printf_mode mode>
 void
 tool_finalize( ompt_data_t* tool_data )
 {
-    if ( enable_printf )
+    if ( mode == printf_mode::callback )
     {
-        printf( "[%s] tool_data = %p\n", __FUNCTION__, tool_data );
+        printf( "[%s]\n", __FUNCTION__ );
+    }
+    else if ( mode == printf_mode::callback_include_args )
+    {
+        printf( "[%s] tool_data = %p\n",
+                __FUNCTION__,
+                tool_data );
     }
 }
 
@@ -1227,37 +1379,43 @@ extern "C" ompt_start_tool_result_t *
 ompt_start_tool( unsigned int omp_version,
                  const char* runtime_version )
 {
-    bool enable_printf = false;
-    /* Check state of OMPT_ENABLE_PRINTF environment variable.
-     * If true / yes / 1, enable the tool. Otherwise, disable it. */
-    const char* env_enable_printf_c = std::getenv( "OMPT_ENABLE_PRINTF" );
-    std::string env_enable_printf   = env_enable_printf_c ? env_enable_printf_c : "false";
-    std::transform( env_enable_printf.begin(), env_enable_printf.end(), env_enable_printf.begin(),
-                    [ ]( unsigned char c ) {
-        return std::tolower( c );
-    } );
-    if ( env_enable_printf == "yes" || env_enable_printf == "1" || env_enable_printf == "true" )
+    printf_mode chosen_printf_mode = printf_mode::callback_include_args;
+
+    /* Check if the OMPT_mode == printf_mode::callback_include_args environment variable is set.
+     * Depending on the chosen integer value, the printing mode is chosen. */
+    const char* env_printf_mode     = std::getenv( "OMPT_PRINTF_MODE" );
+    const int   env_printf_mode_int = env_printf_mode ? std::stoi( env_printf_mode ) : -1;
+    assert( env_printf_mode_int >= -1 && env_printf_mode_int < static_cast<int> ( printf_mode::num_modes ) && "Invalid OMPT_PRINTF_MODE" );
+    if ( env_printf_mode_int >= 0 && env_printf_mode_int < static_cast<int>( printf_mode::num_modes ) )
     {
-        enable_printf = true;
+        chosen_printf_mode = static_cast<printf_mode>( env_printf_mode_int );
     }
 
     static ompt_start_tool_result_t tool;
-    if ( enable_printf )
+    switch ( chosen_printf_mode )
     {
-        printf( "[%s] omp_version = %d | runtime_version = %s\n",
-                __FUNCTION__,
-                omp_version,
-                runtime_version );
-        tool = { tool_initialize<true>,
-                 tool_finalize<true>,
-                 ompt_data_none };
+        case printf_mode::disable:
+            tool.initialize = &tool_initialize<printf_mode::disable>;
+            tool.finalize   = &tool_finalize<printf_mode::disable>;
+            break;
+        case printf_mode::callback:
+            printf( "[%s]\n",
+                    __FUNCTION__ );
+            tool.initialize = &tool_initialize<printf_mode::callback>;
+            tool.finalize   = &tool_finalize<printf_mode::callback>;
+            break;
+        case printf_mode::callback_include_args:
+            printf( "[%s] omp_version = %u | runtime_version = %s\n",
+                    __FUNCTION__,
+                    omp_version,
+                    runtime_version );
+            tool.initialize = &tool_initialize<printf_mode::callback_include_args>;
+            tool.finalize   = &tool_finalize<printf_mode::callback_include_args>;
+            break;
+        default:
+            assert( false && "Unknown printf mode" );
     }
-    else
-    {
-        tool = { tool_initialize<false>,
-                 tool_finalize<false>,
-                 ompt_data_none };
-    }
+    tool.tool_data = ompt_data_none;
 
     return &tool;
 }
