@@ -40,6 +40,9 @@
 #include <string>
 
 #include <omp-tools.h>
+#include <vector>
+#include <unordered_map>
+#include <chrono>
 
 /* Global variables */
 
@@ -74,6 +77,29 @@ typedef struct registration_data_t
     ompt_callback_t  callback;
     const char*      name;
 } registration_data_t;
+
+typedef struct device_functions_t
+{
+    /* Required functions */
+    ompt_get_device_time_t       get_device_time;
+    ompt_set_trace_ompt_t        set_trace_ompt;
+    ompt_start_trace_t           start_trace;
+    ompt_flush_trace_t           flush_trace;
+    ompt_advance_buffer_cursor_t advance_buffer_cursor;
+    ompt_get_record_ompt_t       get_record_ompt;
+    /* Optional functions */
+    ompt_stop_trace_t            stop_trace;
+    ompt_pause_trace_t           pause_trace;
+} device_functions_t;
+
+typedef struct device_t
+{
+    ompt_device_t*     address = nullptr;
+    std::string        name;
+    device_functions_t device_functions = { nullptr };
+} device_t;
+
+static std::unordered_map<ompt_id_t, device_t> devices;
 
 /* printf conversion output */
 
@@ -1174,6 +1200,159 @@ callback_dispatch( ompt_data_t*    parallel_data,
 
 template<printf_mode mode>
 void
+callback_buffer_request( int             device_num,
+                         ompt_buffer_t** buffer,
+                         size_t*         bytes )
+{
+    constexpr size_t buffer_size = 100;
+    constexpr size_t record_size = sizeof( ompt_record_ompt_t );
+
+    *buffer = new ompt_record_ompt_t[ buffer_size ];
+    *bytes  = buffer_size * record_size;
+
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s] tid = %d\n",
+                __FUNCTION__,
+                thread_id );
+    }
+    else if ( mode == printf_mode::callback_include_args )
+    {
+        printf( "[%s] tid = %d | device_num = %d | buffer = %p | bytes = %lu\n",
+                __FUNCTION__,
+                thread_id,
+                device_num,
+                buffer,
+                *bytes );
+    }
+}
+
+template<printf_mode mode>
+void
+callback_buffer_complete( int                  device_num,
+                          ompt_buffer_t*       buffer,
+                          size_t               bytes,
+                          ompt_buffer_cursor_t begin,
+                          int                  buffer_owned )
+{
+    if ( mode == printf_mode::callback )
+    {
+        printf( "[%s] tid = %d\n",
+                __FUNCTION__,
+                thread_id );
+    }
+    else if ( mode == printf_mode::callback_include_args )
+    {
+        printf( "[%s] tid = %d | device_num = %d | buffer = %p | bytes = %lu | begin = %lu | buffer_owned = %d\n",
+                __FUNCTION__,
+                thread_id,
+                device_num,
+                buffer,
+                bytes,
+                begin,
+                buffer_owned );
+    }
+
+    auto device = devices.find( device_num );
+    assert( device != devices.end() && "Device not found" );
+    auto current_cursor = begin;
+    do
+    {
+        ompt_record_ompt_t* record = device->second.device_functions.get_record_ompt( buffer, current_cursor );
+        if ( mode > printf_mode::disable )
+        {
+            /*   ompt_device_time_t time;
+                 ompt_id_t thread_id;
+                 ompt_id_t target_id; */
+            switch ( record->type )
+            {
+                case ompt_callback_target:
+                case ompt_callback_target_emi:
+                    printf( "[%s] tid = %d | time = %lu | thread_id = %lu | target_id = %lu | kind = %s | "
+                            "endpoint = %s | device_num = %d | task_id = %lu | target_id = %lu | codeptr_ra = %p\n",
+                            __FUNCTION__,
+                            thread_id,
+                            record->time,
+                            record->thread_id,
+                            record->target_id,
+                            target2string( record->record.target.kind ).c_str(),
+                            endpoint2string( record->record.target.endpoint ).c_str(),
+                            record->record.target.device_num,
+                            record->record.target.task_id,
+                            record->record.target.target_id,
+                            record->record.target.codeptr_ra );
+                    break;
+                case ompt_callback_target_data_op:
+                case ompt_callback_target_data_op_emi:
+                    printf( "[%s] tid = %d | time = %lu | thread_id = %lu | target_id = %lu | host_op_id = %lu | "
+                            "optype = %s | src_addr = %p | src_device_num = %d | dest_addr = %p | "
+                            "dest_device_num = %d | bytes = %lu | end_time = %lu | codeptr_ra = %p\n",
+                            __FUNCTION__,
+                            thread_id,
+                            record->time,
+                            record->thread_id,
+                            record->target_id,
+                            record->record.target_data_op.host_op_id,
+                            data_op2string( record->record.target_data_op.optype ).c_str(),
+                            record->record.target_data_op.src_addr,
+                            record->record.target_data_op.src_device_num,
+                            record->record.target_data_op.dest_addr,
+                            record->record.target_data_op.dest_device_num,
+                            record->record.target_data_op.bytes,
+                            record->record.target_data_op.end_time,
+                            record->record.target_data_op.codeptr_ra );
+                    break;
+                case ompt_callback_target_map:
+                case ompt_callback_target_map_emi:
+                    printf( "[%s] tid = %d | time = %lu | thread_id = %lu | target_id = %lu | target_id = %lu | "
+                            "nitems = %u | host_addr = %p | device_addr = %p | bytes = %p | mapping_flags = %p | "
+                            "codeptr_ra = %p\n",
+                            __FUNCTION__,
+                            thread_id,
+                            record->time,
+                            record->thread_id,
+                            record->target_id,
+                            record->record.target_map.target_id,
+                            record->record.target_map.nitems,
+                            record->record.target_map.host_addr,
+                            record->record.target_map.device_addr,
+                            record->record.target_map.bytes,
+                            record->record.target_map.mapping_flags,
+                            record->record.target_map.codeptr_ra );
+                    break;
+                case ompt_callback_target_submit:
+                case ompt_callback_target_submit_emi:
+                    printf( "[%s] tid = %d | time = %lu | thread_id = %lu | target_id = %lu | host_op_id = %lu | "
+                            "requested_num_teams = %u | granted_num_teams = %u | end_time = %lu\n",
+                            __FUNCTION__,
+                            thread_id,
+                            record->time,
+                            record->thread_id,
+                            record->target_id,
+                            record->record.target_kernel.host_op_id,
+                            record->record.target_kernel.requested_num_teams,
+                            record->record.target_kernel.granted_num_teams,
+                            record->record.target_kernel.end_time );
+                    break;
+                default:
+                    assert( false && "Unexpected ompt_record_ompt_t type" );
+            }
+        }
+    }
+    while ( device->second.device_functions.advance_buffer_cursor( device->second.address,
+                                                                   buffer,
+                                                                   bytes,
+                                                                   current_cursor,
+                                                                   &current_cursor ) );
+
+    if ( buffer_owned )
+    {
+        delete[] ( ompt_record_ompt_t* )buffer;
+    }
+}
+
+template<printf_mode mode>
+void
 callback_device_initialize( int                    device_num,
                             const char*            type,
                             ompt_device_t*         device,
@@ -1197,6 +1376,105 @@ callback_device_initialize( int                    device_num,
                 lookup,
                 documentation );
     }
+
+    assert( devices.find( device_num ) == devices.end() && "Device already initialized" );
+    device_t new_device;
+    new_device.name    = type;
+    new_device.address = device;
+    if ( lookup )
+    {
+        new_device.device_functions.get_device_time = ( ompt_get_device_time_t )lookup( "ompt_get_device_time" );
+        if ( !new_device.device_functions.get_device_time )
+        {
+            return;
+        }
+        new_device.device_functions.set_trace_ompt = ( ompt_set_trace_ompt_t )lookup( "ompt_set_trace_ompt" );
+        if ( !new_device.device_functions.set_trace_ompt )
+        {
+            return;
+        }
+        new_device.device_functions.start_trace = ( ompt_start_trace_t )lookup( "ompt_start_trace" );
+        if ( !new_device.device_functions.start_trace )
+        {
+            return;
+        }
+        new_device.device_functions.flush_trace = ( ompt_flush_trace_t )lookup( "ompt_flush_trace" );
+        if ( !new_device.device_functions.flush_trace )
+        {
+            return;
+        }
+        new_device.device_functions.advance_buffer_cursor = ( ompt_advance_buffer_cursor_t )lookup( "ompt_advance_buffer_cursor" );
+        if ( !new_device.device_functions.advance_buffer_cursor )
+        {
+            return;
+        }
+        new_device.device_functions.get_record_ompt = ( ompt_get_record_ompt_t )lookup( "ompt_get_record_ompt" );
+        if ( !new_device.device_functions.get_record_ompt )
+        {
+            return;
+        }
+        /* Optional functions */
+        new_device.device_functions.stop_trace  = ( ompt_stop_trace_t )lookup( "ompt_stop_trace" );
+        new_device.device_functions.pause_trace = ( ompt_pause_trace_t )lookup( "ompt_pause_trace" );
+
+        /* Register buffer events */
+        ompt_set_result_t result;
+        result = new_device.device_functions.set_trace_ompt( new_device.address, true, ompt_callback_target_emi );
+        if ( mode > printf_mode::disable )
+        {
+            if ( result != ompt_set_error )
+            {
+                printf( "[%s] tid = %d | device_num = %d | ompt_callback_target_emi = %s\n",
+                        __FUNCTION__,
+                        thread_id,
+                        device_num,
+                        set_result2string( result ).c_str() );
+            }
+        }
+        new_device.device_functions.set_trace_ompt( new_device.address, true, ompt_callback_target_data_op_emi );
+        if ( mode > printf_mode::disable )
+        {
+            if ( result != ompt_set_error )
+            {
+                printf( "[%s] tid = %d | device_num = %d | ompt_callback_target_data_op_emi = %s\n",
+                        __FUNCTION__,
+                        thread_id,
+                        device_num,
+                        set_result2string( result ).c_str() );
+            }
+        }
+        new_device.device_functions.set_trace_ompt( new_device.address, true, ompt_callback_target_map_emi );
+        if ( mode > printf_mode::disable )
+        {
+            if ( result != ompt_set_error )
+            {
+                printf( "[%s] tid = %d | device_num = %d | ompt_callback_target_map_emi = %s\n",
+                        __FUNCTION__,
+                        thread_id,
+                        device_num,
+                        set_result2string( result ).c_str() );
+            }
+        }
+        new_device.device_functions.set_trace_ompt( new_device.address, true, ompt_callback_target_submit_emi );
+        if ( mode > printf_mode::disable )
+        {
+            if ( result != ompt_set_error )
+            {
+                printf( "[%s] tid = %d | device_num = %d | ompt_callback_target_submit_emi = %s\n",
+                        __FUNCTION__,
+                        thread_id,
+                        device_num,
+                        set_result2string( result ).c_str() );
+            }
+        }
+
+        if ( !new_device.device_functions.start_trace( new_device.address, &callback_buffer_request<mode>, &callback_buffer_complete<mode> ) )
+        {
+            return;
+        }
+    }
+
+    devices[ device_num ] = new_device;
 }
 
 template<printf_mode mode>
@@ -1216,6 +1494,21 @@ callback_device_finalize( int device_num )
                 thread_id,
                 device_num );
     }
+
+    assert( devices.find( device_num ) != devices.end() && "Device not found" );
+    if ( devices[ device_num ].device_functions.flush_trace )
+    {
+        devices[ device_num ].device_functions.flush_trace( devices[ device_num ].address );
+    }
+    if ( devices[ device_num ].device_functions.pause_trace )
+    {
+        devices[ device_num ].device_functions.pause_trace( devices[ device_num ].address, true );
+    }
+    if ( devices[ device_num ].device_functions.stop_trace )
+    {
+        devices[ device_num ].device_functions.stop_trace( devices[ device_num ].address );
+    }
+    devices.erase( device_num );
 }
 
 template<printf_mode mode>
