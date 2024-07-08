@@ -42,7 +42,8 @@
 #include <omp-tools.h>
 #include <vector>
 #include <unordered_map>
-#include <chrono>
+
+#include "tool-definitions.h"
 
 /* Global variables */
 
@@ -56,8 +57,7 @@ static std::atomic<ompt_id_t> next_target_id      = 777000000;
 constexpr ompt_id_t           unknown_host_op_id  = 888888888;
 static std::atomic<ompt_id_t> next_host_op_id     = 888000000;
 
-static ompt_get_unique_id_t get_unique_id = nullptr;
-static __thread int32_t     thread_id     = unknown_thread_id;
+static __thread int32_t     thread_id = unknown_thread_id;
 static std::atomic<int32_t> next_thread_id { 0 };
 
 /* Helpers */
@@ -228,11 +228,13 @@ task_flag2string( uint32_t flags )
         result << "_target";
         flags -= ompt_task_target;
     }
+    #if HAVE( OMPT_TASK_TASKWAIT )
     else if ( flags & ompt_task_taskwait )
     {
         result << "_taskwait";
         flags -= ompt_task_taskwait;
     }
+    #endif
 
     if ( flags & ompt_task_undeferred )
     {
@@ -277,8 +279,10 @@ endpoint2string( ompt_scope_endpoint_t t )
             return "begin";
         case ompt_scope_end:
             return "end";
+        #if HAVE( OMPT_SCOPE_BEGINEND )
         case ompt_scope_beginend:
             return "beginend";
+        #endif
         default:
             assert( false && "Unknown ompt_scope_endpoint_t" );
     }
@@ -313,8 +317,10 @@ task_status2string( ompt_task_status_t t )
             return "late_fulfill";
         case ompt_task_switch:
             return "switch";
+        #if HAVE( OMPT_TASKWAIT_COMPLETE )
         case ompt_taskwait_complete:
             return "taskwait_complete";
+        #endif
         default:
             assert( false && "Unknown ompt_task_status_t" );
     }
@@ -369,12 +375,18 @@ dispatch2string( ompt_dispatch_t t )
             return "iteration";
         case ompt_dispatch_section:
             return "section";
+        #if HAVE( OMPT_DISPATCH_WS_LOOP_CHUNK )
         case ompt_dispatch_ws_loop_chunk:
             return "ws_loop_chunk";
+        #endif
+        #if HAVE( OMPT_DISPATCH_TASKLOOP_CHUNK )
         case ompt_dispatch_taskloop_chunk:
             return "taskloop_chunk";
+        #endif
+        #if HAVE( OMPT_DISPATCH_DISTRIBUTE_CHUNK )
         case ompt_dispatch_distribute_chunk:
             return "distribute_chunk";
+        #endif
         default:
             assert( false && "Unknown ompt_dispatch_t" );
     }
@@ -466,16 +478,26 @@ work2string( ompt_work_t t )
             return "distribute";
         case ompt_work_taskloop:
             return "taskloop";
+        #if HAVE( OMPT_WORK_SCOPE )
         case ompt_work_scope:
             return "scope";
+        #endif
+        #if HAVE( OMPT_WORK_LOOP_STATIC )
         case ompt_work_loop_static:
             return "loop_static";
+        #endif
+        #if HAVE( OMPT_WORK_LOOP_DYTNAMIC )
         case ompt_work_loop_dynamic:
             return "loop_dynamic";
+        #endif
+        #if HAVE( OMPT_WORK_LOOP_GUIDED )
         case ompt_work_loop_guided:
             return "loop_guided";
+        #endif
+        #if HAVE( OMPT_WORK_LOOP_OTHER )
         case ompt_work_loop_other:
             return "loop_other";
+        #endif
         default:
             assert( false && "Unknown ompt_work_t" );
     }
@@ -512,12 +534,18 @@ sync2string( ompt_sync_region_t t )
             return "taskgroup";
         case ompt_sync_region_reduction:
             return "reduction";
+        #if HAVE( OMPT_SYNC_REGION_BARRIER_IMPLICIT_WORKSHARE )
         case ompt_sync_region_barrier_implicit_workshare:
             return "barrier_implicit_workshare";
+        #endif
+        #if HAVE( OMPT_SYNC_REGION_BARRIER_IMPLICIT_PARALLEL )
         case ompt_sync_region_barrier_implicit_parallel:
             return "barrier_implicit_parallel";
+        #endif
+        #if HAVE( OMPT_SYNC_REGION_BARRIER_TEAMS )
         case ompt_sync_region_barrier_teams:
             return "barrier_teams";
+        #endif
         default:
             assert( false && "Unknown ompt_sync_region_t" );
     }
@@ -552,14 +580,22 @@ data_op2string( ompt_target_data_op_t t )
             return "data_associate";
         case ompt_target_data_disassociate:
             return "data_disassociate";
+        #if HAVE( OMPT_TARGET_DATA_ALLOC_ASYNC )
         case ompt_target_data_alloc_async:
             return "data_alloc_async";
+        #endif
+        #if HAVE( OMPT_TARGET_DATA_TRANSFER_TO_DEVICE_ASYNC )
         case ompt_target_data_transfer_to_device_async:
             return "transfer_to_device_async";
+        #endif
+        #if HAVE( OMPT_TARGET_DATA_TRANSFER_FROM_DEVICE_ASYNC )
         case ompt_target_data_transfer_from_device_async:
             return "transfer_from_device_async";
+        #endif
+        #if HAVE( OMPT_TARGET_DATA_DELETE_ASYNC )
         case ompt_target_data_delete_async:
             return "data_delete_async";
+        #endif
         default:
             assert( false && "Unknown ompt_target_data_op_t" );
     }
@@ -588,14 +624,22 @@ target2string( ompt_target_t t )
             return "target_exit_data";
         case ompt_target_update:
             return "target_update";
+        #if HAVE( OMPT_TARGET_NOWAIT )
         case ompt_target_nowait:
             return "target_nowait";
+        #endif
+        #if HAVE( OMPT_TARGET_ENTER_DATA_NOWAIT )
         case ompt_target_enter_data_nowait:
             return "target_enter_data_nowait";
+        #endif
+        #if HAVE( OMPT_TARGET_EXIT_DATA_NOWAIT )
         case ompt_target_exit_data_nowait:
             return "target_exit_data_nowait";
+        #endif
+        #if HAVE( OMPT_TARGET_UPDATE_NOWAIT )
         case ompt_target_update_nowait:
             return "target_update_nowait";
+        #endif
         default:
             assert( false && "Unknown ompt_target_t" );
     }
@@ -1749,11 +1793,6 @@ tool_initialize( ompt_function_lookup_t lookup,
      * callbacks which will get invoked on OpenMP events by the runtime. */
     auto ompt_set_callback = ( ompt_set_callback_t )lookup( "ompt_set_callback" );
     assert( ompt_set_callback && "Could not find ompt_set_callback" );
-    if ( mode > printf_mode::disable )
-    {
-        get_unique_id = ( ompt_get_unique_id_t )lookup( "ompt_get_unique_id" );
-        assert( get_unique_id && "Could not find ompt_get_unique_id" );
-    }
 
     /* Register callbacks for the host side */
 #define CALLBACK( name )                                                       \
@@ -1773,7 +1812,9 @@ tool_initialize( ompt_function_lookup_t lookup,
         CALLBACK( dependences ),
         CALLBACK( task_dependence ),
         CALLBACK( work ),
+        #if HAVE( OMPT_CALLBACK_MASKED )
         CALLBACK( masked ),
+        #endif
         CALLBACK( sync_region ),
         CALLBACK( lock_init ),
         CALLBACK( lock_destroy ),
@@ -1804,10 +1845,18 @@ tool_initialize( ompt_function_lookup_t lookup,
         CALLBACK( device_finalize ),
         CALLBACK( device_load ),
         CALLBACK( device_unload ),
+        #if HAVE( OMPT_CALLBACK_TARGET_EMI )
         CALLBACK( target_emi ),
+        #endif
+        #if HAVE( OMPT_CALLBACK_TARGET_MAP_EMI )
         CALLBACK( target_map_emi ),
+        #endif
+        #if HAVE( OMPT_CALLBACK_TARGET_DATA_OP_EMI )
         CALLBACK( target_data_op_emi ),
+        #endif
+        #if HAVE( OMPT_CALLBACK_TARGET_SUBMIT_EMI )
         CALLBACK( target_submit_emi )
+        #endif
     };
 
     for ( const auto& cb: host_accel_callbacks )

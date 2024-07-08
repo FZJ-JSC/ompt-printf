@@ -41,7 +41,7 @@ set( CMAKE_VERBOSE_MAKEFILE ON CACHE BOOL "Verbose makefile" )
 set( CMAKE_COMPILE_WARNING_AS_ERROR ON CACHE BOOL "Compile warnings as errors" )
 
 include( cmake/OMPTChecks.cmake )
-OMPT_CHECK_HEADER()
+OMPT_HEADER_CHECK()
 if( NOT HAVE_OMP_TOOLS_HEADER )
     message( FATAL_ERROR "omp-tools.h not found, but required for project" )
 endif()

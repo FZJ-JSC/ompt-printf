@@ -33,26 +33,69 @@
 #
 
 include( CheckIncludeFile )
+include( CheckSymbolExists )
 include( CheckTypeSize )
 
-function( OMPT_CHECK_HEADER )
+function( OMPT_HEADER_CHECK )
 
     check_include_file( "omp-tools.h" HAVE_OMP_TOOLS_HEADER )
+    if( HAVE_OMP_TOOLS_HEADER )
     set( CMAKE_EXTRA_INCLUDE_FILES "omp-tools.h" )
-    # Check for OpenMP 5.1+ symbols
-    check_type_size( ompt_sync_region_barrier_implicit_workshare OMPT_SYNC_REGION_BARRIER_IMPLICIT_WORKSHARE_SIZE LANGUAGE C )
-    check_type_size( ompt_scope_beginend OMPT_SCOPE_BEGINEND_SIZE LANGUAGE C )
-    check_type_size( ompt_task_taskwait OMPT_TASK_TASKWAIT_SIZE LANGUAGE C )
-    check_type_size( ompt_sync_region_barrier_implicit_parallel OMPT_SYNC_REGION_BARRIER_IMPLICIT_PARALLEL_SIZE LANGUAGE C )
-    check_type_size( ompt_sync_region_barrier_teams OMPT_SYNC_REGION_BARRIER_TEAMS_SIZE LANGUAGE C )
-    check_type_size( ompt_work_loop_static OMPT_WORK_LOOP_STATIC_SIZE LANGUAGE C )
-    check_type_size( ompt_work_loop_dynamic OMPT_WORK_LOOP_DYNAMIC_SIZE LANGUAGE C )
-    check_type_size( ompt_work_loop_guided OMPT_WORK_LOOP_GUIDED_SIZE LANGUAGE C )
-    check_type_size( ompt_work_loop_other OMPT_WORK_LOOP_OTHER_SIZE LANGUAGE C )
-    check_type_size( ompt_dispatch_ws_loop_chunk OMPT_DISPATCH_WS_LOOP_CHUNK_SIZE LANGUAGE C )
-    check_type_size( ompt_dispatch_taskloop_chunk OMPT_DISPATCH_TASKLOOP_CHUNK_SIZE LANGUAGE C )
-    check_type_size( ompt_dispatch_distribute_chunk OMPT_DISPATCH_DISTRIBUTE_CHUNK_SIZE LANGUAGE C )
-    set( CMAKE_EXTRA_INCLUDE_FILES )
+        # OpenMP 5.1 checks
+        # Check for added callback values
+        check_type_size( ompt_callback_target_emi OMPT_CALLBACK_TARGET_EMI LANGUAGE C )
+        check_type_size( ompt_callback_target_data_op_emi OMPT_CALLBACK_TARGET_DATA_OP_EMI LANGUAGE C )
+        check_type_size( ompt_callback_target_submit_emi OMPT_CALLBACK_TARGET_SUBMIT_EMI LANGUAGE C )
+        check_type_size( ompt_callback_target_map_emi OMPT_CALLBACK_TARGET_MAP_EMI LANGUAGE C )
+        check_type_size( ompt_callback_masked OMPT_CALLBACK_MASKED LANGUAGE C )
+        # Check for new enum values
+        # New fields in ompt_scope_endpoint_t
+        check_type_size( ompt_scope_beginend OMPT_SCOPE_BEGINEND LANGUAGE C )
+        # New fields in ompt_sync_region_t
+        check_type_size( ompt_sync_region_barrier_implicit_workshare OMPT_SYNC_REGION_BARRIER_IMPLICIT_WORKSHARE LANGUAGE C )
+        check_type_size( ompt_sync_region_barrier_implicit_parallel OMPT_SYNC_REGION_BARRIER_IMPLICIT_PARALLEL LANGUAGE C )
+        check_type_size( ompt_sync_region_barrier_teams OMPT_SYNC_REGION_BARRIER_TEAMS LANGUAGE C )
+        # New fields in ompt_target_data_op_t
+        check_type_size( ompt_target_data_alloc_async OMPT_TARGET_DATA_ALLOC_ASYNC LANGUAGE C )
+        check_type_size( ompt_target_data_transfer_to_device_async OMPT_TARGET_DATA_TRANSFER_TO_DEVICE_ASYNC LANGUAGE C )
+        check_type_size( ompt_target_data_transfer_from_device_async OMPT_TARGET_DATA_TRANSFER_FROM_DEVICE_ASYNC LANGUAGE C )
+        check_type_size( ompt_target_data_delete_async OMPT_TARGET_DATA_DELETE_ASYNC LANGUAGE C )
+        # New fields in ompt_work_t
+        check_type_size( ompt_work_scope OMPT_WORK_SCOPE LANGUAGE C )
+        # New fields in ompt_task_flag_t
+        check_type_size( ompt_task_taskwait OMPT_TASK_TASKWAIT LANGUAGE C )
+        # New fields in ompt_task_status_t
+        check_type_size( ompt_taskwait_complete OMPT_TASKWAIT_COMPLETE LANGUAGE C )
+        # New fields in ompt_target_t
+        check_type_size( ompt_target_nowait OMPT_TARGET_NOWAIT LANGUAGE C )
+        check_type_size( ompt_target_enter_data_nowait OMPT_TARGET_ENTER_DATA_NOWAIT LANGUAGE C )
+        check_type_size( ompt_target_exit_data_nowait OMPT_TARGET_EXIT_DATA_NOWAIT LANGUAGE C )
+        check_type_size( ompt_target_update_nowait OMPT_TARGET_UPDATE_NOWAIT LANGUAGE C )
+        # New fields in ompt_dependence_type_t
+        check_type_size( ompt_dependence_type_inoutset OMPT_DEPENDENCE_TYPE_INOUTSET LANGUAGE C )
+
+        # OpenMP 5.2 checks
+        # No new callbacks
+        # Check for new enum values
+        # New fields in ompt_dispatch_t
+        check_type_size( ompt_dispatch_ws_loop_chunk OMPT_DISPATCH_WS_LOOP_CHUNK LANGUAGE C )
+        check_type_size( ompt_dispatch_taskloop_chunk OMPT_DISPATCH_TASKLOOP_CHUNK LANGUAGE C )
+        check_type_size( ompt_dispatch_distribute_chunk OMPT_DISPATCH_DISTRIBUTE_CHUNK LANGUAGE C )
+        # New fields in ompt_work_t
+        check_type_size( ompt_work_loop_static OMPT_WORK_LOOP_STATIC LANGUAGE C )
+        check_type_size( ompt_work_loop_dynamic OMPT_WORK_LOOP_DYNAMIC LANGUAGE C )
+        check_type_size( ompt_work_loop_guided OMPT_WORK_LOOP_GUIDED LANGUAGE C )
+        check_type_size( ompt_work_loop_other OMPT_WORK_LOOP_OTHER LANGUAGE C )
+        # New fields in ompt_target_map_flag_t
+        check_type_size( ompt_target_map_flag_always OMPT_TARGET_MAP_FLAG_ALWAYS LANGUAGE C )
+        check_type_size( ompt_target_map_flag_present OMPT_TARGET_MAP_FLAG_PRESENT LANGUAGE C )
+        check_type_size( ompt_target_map_flag_close OMPT_TARGET_MAP_FLAG_CLOSE LANGUAGE C )
+        check_type_size( ompt_target_map_flag_shared OMPT_TARGET_MAP_FLAG_SHARED LANGUAGE C )
+
+        # OpenMP 6.0 checks
+        # TR13 needs to be released first
+        set( CMAKE_EXTRA_INCLUDE_FILES )
+    endif()
 
 endfunction()
 

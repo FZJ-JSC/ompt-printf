@@ -36,3 +36,6 @@ add_library( ompt-printf SHARED )
 target_sources( ompt-printf PRIVATE tool.cpp )
 target_compile_options( ompt-printf PUBLIC ${OMPT_C_FLAGS} ${OMPT_CXX_FLAGS} )
 target_link_options( ompt-printf PUBLIC ${OMPT_LINK_FLAGS} )
+target_include_directories( ompt-printf PRIVATE ${CMAKE_CURRENT_BINARY_DIR} )
+
+configure_file( tool-definitions.h.in tool-definitions.h )
