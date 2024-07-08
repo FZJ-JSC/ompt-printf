@@ -131,6 +131,7 @@ set_result2string( const ompt_set_result_t t )
         default:
             assert( false && "Unknown ompt_set_result_t" );
     }
+    return "";
 }
 
 /* typedef enum ompt_thread_t {
@@ -155,6 +156,7 @@ thread2string( const ompt_thread_t t )
         default:
             assert( false && "Unknown ompt_thread_t" );
     }
+    return "";
 }
 
 /* typedef enum ompt_parallel_flag_t {
@@ -286,6 +288,7 @@ endpoint2string( ompt_scope_endpoint_t t )
         default:
             assert( false && "Unknown ompt_scope_endpoint_t" );
     }
+    return "";
 }
 
 /* typedef enum ompt_task_status_t {
@@ -324,6 +327,7 @@ task_status2string( ompt_task_status_t t )
         default:
             assert( false && "Unknown ompt_task_status_t" );
     }
+    return "";
 }
 
 /* typedef enum ompt_mutex_t {
@@ -357,6 +361,7 @@ mutex2string( ompt_mutex_t t )
         default:
             assert( false && "Unknown ompt_mutex_t" );
     }
+    return "";
 }
 
 /* typedef enum ompt_dispatch_t {
@@ -390,6 +395,7 @@ dispatch2string( ompt_dispatch_t t )
         default:
             assert( false && "Unknown ompt_dispatch_t" );
     }
+    return "";
 }
 
 /* typedef enum ompt_cancel_flag_t {
@@ -501,6 +507,7 @@ work2string( ompt_work_t t )
         default:
             assert( false && "Unknown ompt_work_t" );
     }
+    return "";
 }
 
 /* typedef enum ompt_sync_region_t {
@@ -549,6 +556,7 @@ sync2string( ompt_sync_region_t t )
         default:
             assert( false && "Unknown ompt_sync_region_t" );
     }
+    return "";
 }
 
 /* typedef enum ompt_target_data_op_t {
@@ -599,6 +607,7 @@ data_op2string( ompt_target_data_op_t t )
         default:
             assert( false && "Unknown ompt_target_data_op_t" );
     }
+    return "";
 }
 
 /* typedef enum ompt_target_t {
@@ -643,6 +652,7 @@ target2string( ompt_target_t t )
         default:
             assert( false && "Unknown ompt_target_t" );
     }
+    return "";
 }
 
 /* Host side callbacks */
