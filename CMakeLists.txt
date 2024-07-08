@@ -34,7 +34,7 @@
 
 cmake_minimum_required( VERSION 3.24 )
 
-include( cmake/DefineCompilerVendor.cmake )
+include( cmake/DefineCompilerToolchain.cmake )
 project( ompt-printf LANGUAGES C CXX )
 
 set( CMAKE_VERBOSE_MAKEFILE ON CACHE BOOL "Verbose makefile" )
