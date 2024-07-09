@@ -671,6 +671,120 @@ target2string( ompt_target_t t )
     return "";
 }
 
+/* typedef enum ompt_target_map_flag_t {
+ *   ompt_target_map_flag_to       = 0x01,
+ *   ompt_target_map_flag_from     = 0x02,
+ *   ompt_target_map_flag_alloc    = 0x04,
+ *   ompt_target_map_flag_release  = 0x08,
+ *   ompt_target_map_flag_delete   = 0x10,
+ *   ompt_target_map_flag_implicit = 0x20,
+ *   ompt_target_map_flag_always   = 0x40,
+ *   ompt_target_map_flag_present  = 0x80,
+ *   ompt_target_map_flag_close    = 0x100,
+ *   ompt_target_map_flag_shared   = 0x200
+ * } ompt_target_map_flag_t; */
+static inline std::string
+map_flag2string( unsigned int t )
+{
+    std::stringstream result;
+    if ( t & ompt_target_map_flag_to )
+    {
+        result << "to";
+        t -= ompt_target_map_flag_to;
+    }
+    else if ( t & ompt_target_map_flag_from )
+    {
+        result << "from";
+        t -= ompt_target_map_flag_from;
+    }
+    else if ( t & ompt_target_map_flag_alloc )
+    {
+        result << "alloc";
+        t -= ompt_target_map_flag_alloc;
+    }
+    else if ( t & ompt_target_map_flag_release )
+    {
+        result << "release";
+        t -= ompt_target_map_flag_release;
+    }
+    else if ( t & ompt_target_map_flag_delete )
+    {
+        result << "delete";
+        t -= ompt_target_map_flag_delete;
+    }
+    else if ( t & ompt_target_map_flag_implicit )
+    {
+        result << "implicit";
+        t -= ompt_target_map_flag_implicit;
+    }
+    #if HAVE( HAVE_OMPT_TARGET_MAP_FLAG_ALWAYS )
+    else if ( t & ompt_target_map_flag_always )
+    {
+        result << "always";
+        t -= ompt_target_map_flag_always;
+    }
+    #endif
+    #if HAVE( OMPT_TARGET_MAP_FLAG_PRESENT )
+    else if ( t & ompt_target_map_flag_present )
+    {
+        result << "present";
+        t -= ompt_target_map_flag_present;
+    }
+    #endif
+    #if HAVE( OMPT_TARGET_MAP_FLAG_CLOSE )
+    else if ( t & ompt_target_map_flag_close )
+    {
+        result << "close";
+        t -= ompt_target_map_flag_close;
+    }
+    #endif
+    #if HAVE( OMPT_TARGET_MAP_FLAG_SHARED )
+    else if ( t & ompt_target_map_flag_shared )
+    {
+        result << "shared";
+        t -= ompt_target_map_flag_shared;
+    }
+    #endif
+    assert( t == 0 && "Unknown ompt_target_map_flag_t" );
+    return result.str();
+}
+
+/* typedef enum ompt_dependence_type_t {
+ *   ompt_dependence_type_in            = 1,
+ *   ompt_dependence_type_out           = 2,
+ *   ompt_dependence_type_inout         = 3,
+ *   ompt_dependence_type_mutexinoutset = 4,
+ *   ompt_dependence_type_source        = 5,
+ *   ompt_dependence_type_sink          = 6,
+ *   ompt_dependence_type_inoutset      = 7
+ * } ompt_dependence_type_t; */
+static inline std::string
+dependence_type2string( ompt_dependence_type_t t )
+{
+    switch ( t )
+    {
+        case ompt_dependence_type_in:
+            return "in";
+        case ompt_dependence_type_out:
+            return "out";
+        case ompt_dependence_type_inout:
+            return "inout";
+        case ompt_dependence_type_mutexinoutset:
+            return "mutexinoutset";
+        case ompt_dependence_type_source:
+            return "source";
+        case ompt_dependence_type_sink:
+            return "sink";
+        #if HAVE( OMPT_DEPENDENCE_TYPE_INOUTSET )
+        case ompt_dependence_type_inoutset:
+            return "inoutset";
+        #endif
+        default:
+            assert( false && "Unknown ompt_dependence_type_t" );
+    }
+    return "";
+}
+
 /* Host side callbacks */
 
 template<printf_mode mode>
@@ -951,6 +1065,15 @@ callback_dependences( ompt_data_t*             task_data,
                        task_data ? task_data->value : unknown_task_id,
                        deps,
                        ndeps );
+        for ( int i = 0; i < ndeps; ++i )
+        {
+            atomic_printf( "[%s] | deps[%d].variable_addr = %p | deps[%d].dependence_type = %s\n",
+                           __FUNCTION__,
+                           i,
+                           deps[ i ].variable,
+                           i,
+                           dependence_type2string( deps[ i ].dependence_type ).c_str() );
+        }
     }
 }
 
@@ -1375,8 +1498,7 @@ callback_buffer_complete( int                  device_num,
                 case ompt_callback_target_map:
                 case ompt_callback_target_map_emi:
                     atomic_printf( "[%s] tid = %d | time = %lu | thread_id = %lu | target_id = %lu | target_id = %lu | "
-                                   "nitems = %u | host_addr = %p | device_addr = %p | bytes = %p | mapping_flags = %p | "
-                                   "codeptr_ra = %p\n",
+                                   "nitems = %u | codeptr_ra = %p\n",
                                    __FUNCTION__,
                                    thread_id,
                                    record->time,
@@ -1384,11 +1506,20 @@ callback_buffer_complete( int                  device_num,
                                    record->target_id,
                                    record->record.target_map.target_id,
                                    record->record.target_map.nitems,
-                                   record->record.target_map.host_addr,
-                                   record->record.target_map.device_addr,
-                                   record->record.target_map.bytes,
-                                   record->record.target_map.mapping_flags,
                                    record->record.target_map.codeptr_ra );
+                    for ( unsigned int i = 0; i < record->record.target_map.nitems; ++i )
+                    {
+                        atomic_printf( "[%s] host_addr[%d] = %p | device_addr[%d] = %p | bytes[%d] = %lu | mapping_flags[%d] = %s\n",
+                                       __FUNCTION__,
+                                       i,
+                                       record->record.target_map.host_addr[ i ],
+                                       i,
+                                       record->record.target_map.device_addr[ i ],
+                                       i,
+                                       record->record.target_map.bytes[ i ],
+                                       i,
+                                       map_flag2string( record->record.target_map.mapping_flags[ i ] ).c_str() );
+                    }
                     break;
                 case ompt_callback_target_submit:
                 case ompt_callback_target_submit_emi:
@@ -1654,17 +1785,27 @@ callback_target_map_emi( ompt_data_t*  target_data,
     }
     else if ( mode == printf_mode::callback_include_args )
     {
-        atomic_printf( "[%s] tid = %d | target_data->value = %lu | nitems = %u | host_addr = %p | device_addr = %p | "
-                       "bytes = %p | mapping_flags = %p | codeptr_ra = %p\n",
+        atomic_printf( "[%s] tid = %d | target_data->value = %lu | nitems = %u | codeptr_ra = %p\n",
                        __FUNCTION__,
                        thread_id,
                        target_data ? target_data->value : unknown_target_id,
                        nitems,
-                       host_addr,
-                       device_addr,
-                       bytes,
-                       mapping_flags,
                        codeptr_ra );
+        for ( unsigned int i = 0; i < nitems; ++i )
+        {
+            atomic_printf( "[%s] tid = %d | host_addr[%u] = %p | device_addr[%u] = %p | "
+                           "bytes[%u] = %lu | mapping_flags[%u] = %u\n",
+                           __FUNCTION__,
+                           thread_id,
+                           i,
+                           host_addr[ i ],
+                           i,
+                           device_addr[ i ],
+                           i,
+                           bytes[ i ],
+                           i,
+                           map_flag2string( mapping_flags[ i ] ).c_str() );
+        }
     }
 }
 
