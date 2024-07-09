@@ -64,9 +64,10 @@ static std::atomic<int32_t> next_thread_id { 0 };
 
 enum class printf_mode : int
 {
-    disable               = 0,
-    callback              = 1,
-    callback_include_args = 2,
+    disable_tool          = 0,
+    disable_output        = 1,
+    callback              = 2,
+    callback_include_args = 3,
 
     num_modes
 };
@@ -677,7 +678,7 @@ void
 callback_thread_begin( ompt_thread_t thread_type,
                        ompt_data_t*  thread_data )
 {
-    if ( mode > printf_mode::disable )
+    if ( mode > printf_mode::disable_output )
     {
         thread_id = next_thread_id++;
     }
@@ -725,7 +726,7 @@ callback_parallel_begin( ompt_data_t*        encountering_task_data,
                          int                 flags,
                          const void*         codeptr_ra )
 {
-    if ( mode > printf_mode::disable )
+    if ( mode > printf_mode::disable_output )
     {
         if ( parallel_data )
         {
@@ -789,7 +790,7 @@ callback_task_create( ompt_data_t*        encountering_task_data,
                       int                 has_dependences,
                       const void*         codeptr_ra )
 {
-    if ( mode > printf_mode::disable )
+    if ( mode > printf_mode::disable_output )
     {
         if ( new_task_data )
         {
@@ -851,7 +852,7 @@ callback_implicit_task( ompt_scope_endpoint_t endpoint,
                         unsigned int          index,
                         int                   flags )
 {
-    if ( mode > printf_mode::disable )
+    if ( mode > printf_mode::disable_output )
     {
         if ( task_data && endpoint == ompt_scope_begin )
         {
@@ -1328,7 +1329,7 @@ callback_buffer_complete( int                  device_num,
     do
     {
         ompt_record_ompt_t* record = device->second.device_functions.get_record_ompt( buffer, current_cursor );
-        if ( mode > printf_mode::disable )
+        if ( mode > printf_mode::disable_output )
         {
             /*   ompt_device_time_t time;
                  ompt_id_t thread_id;
@@ -1489,7 +1490,7 @@ callback_device_initialize( int                    device_num,
         /* Register buffer events */
         ompt_set_result_t result;
         result = new_device.device_functions.set_trace_ompt( new_device.address, true, ompt_callback_target_emi );
-        if ( mode > printf_mode::disable )
+        if ( mode > printf_mode::disable_output )
         {
             if ( result != ompt_set_error )
             {
@@ -1501,7 +1502,7 @@ callback_device_initialize( int                    device_num,
             }
         }
         new_device.device_functions.set_trace_ompt( new_device.address, true, ompt_callback_target_data_op_emi );
-        if ( mode > printf_mode::disable )
+        if ( mode > printf_mode::disable_output )
         {
             if ( result != ompt_set_error )
             {
@@ -1513,7 +1514,7 @@ callback_device_initialize( int                    device_num,
             }
         }
         new_device.device_functions.set_trace_ompt( new_device.address, true, ompt_callback_target_map_emi );
-        if ( mode > printf_mode::disable )
+        if ( mode > printf_mode::disable_output )
         {
             if ( result != ompt_set_error )
             {
@@ -1525,7 +1526,7 @@ callback_device_initialize( int                    device_num,
             }
         }
         new_device.device_functions.set_trace_ompt( new_device.address, true, ompt_callback_target_submit_emi );
-        if ( mode > printf_mode::disable )
+        if ( mode > printf_mode::disable_output )
         {
             if ( result != ompt_set_error )
             {
@@ -1677,7 +1678,7 @@ callback_target_emi( ompt_target_t         kind,
                      ompt_data_t*          target_data,
                      const void*           codeptr_ra )
 {
-    if ( mode > printf_mode::disable )
+    if ( mode > printf_mode::disable_output )
     {
         if ( task_data && endpoint == ompt_scope_begin )
         {
@@ -1721,7 +1722,7 @@ callback_target_data_op_emi( ompt_scope_endpoint_t endpoint,
                              size_t                bytes,
                              const void*           codeptr_ra )
 {
-    if ( mode > printf_mode::disable )
+    if ( mode > printf_mode::disable_output )
     {
         if ( host_op_id && endpoint == ompt_scope_begin )
         {
@@ -1763,7 +1764,7 @@ callback_target_submit_emi( ompt_scope_endpoint_t endpoint,
                             ompt_id_t*            host_op_id,
                             unsigned int          requested_num_teams )
 {
-    if ( mode > printf_mode::disable )
+    if ( mode > printf_mode::disable_output )
     {
         if ( host_op_id && endpoint == ompt_scope_begin )
         {
@@ -1939,9 +1940,14 @@ ompt_start_tool( unsigned int omp_version,
     static ompt_start_tool_result_t tool;
     switch ( chosen_printf_mode )
     {
-        case printf_mode::disable:
-            tool.initialize = &tool_initialize<printf_mode::disable>;
-            tool.finalize   = &tool_finalize<printf_mode::disable>;
+        case printf_mode::disable_tool:
+            /* According to OpenMP 5.2 spec.: A tool may return NULL from
+             * ompt_start_tool to indicate that it will not use the OMPT
+             * interface in a particular execution. */
+            return nullptr;
+        case printf_mode::disable_output:
+            tool.initialize = &tool_initialize<printf_mode::disable_output>;
+            tool.finalize   = &tool_finalize<printf_mode::disable_output>;
             break;
         case printf_mode::callback:
             atomic_printf( "[%s] tid = %d\n",

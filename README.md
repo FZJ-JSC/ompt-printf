@@ -26,9 +26,10 @@ be controlled via the environment variable `OMPT_PRINTF_MODE`:
 
 | Mode | Description                             |
 |------|-----------------------------------------|
-| 0    | Print no information                    |
-| 1    | Print all events, but without arguments |
-| 2    | Print all events with arguments         |
+| 0    | Disable the tool entirely               |
+| 1    | Enable tool, but print no information   |
+| 2    | Print all events, but without arguments |
+| 3    | Print all events with arguments         |
 
 These modes are implemented via C++ templates. This should keep the overhead
 of the tool as low as possible when choosing between the different modes.
