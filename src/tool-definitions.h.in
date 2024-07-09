@@ -35,6 +35,8 @@
 #ifndef PRINTF_TOOL_DEFINITIONS_H
 #define PRINTF_TOOL_DEFINITIONS_H
 
+#define FALSE 0
+#define TRUE  1
 #define HAVE( X ) defined( HAVE_ ##X ) && HAVE_ ##X == TRUE
 
 /* OpenMP 5.1 */

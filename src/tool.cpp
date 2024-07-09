@@ -47,15 +47,15 @@
 
 /* Global variables */
 
-constexpr int32_t             unknown_thread_id   = -1;
-constexpr ompt_id_t           unknown_task_id     = 555555555;
-static std::atomic<ompt_id_t> next_task_id        = 555000000;
+constexpr int32_t             unknown_thread_id = -1;
+constexpr ompt_id_t           unknown_task_id   = 555555555;
+static std::atomic<ompt_id_t> next_task_id        { 555000000 };
 constexpr ompt_id_t           unknown_parallel_id = 666666666;
-static std::atomic<ompt_id_t> next_parallel_id    = 666000000;
-constexpr ompt_id_t           unknown_target_id   = 777777777;
-static std::atomic<ompt_id_t> next_target_id      = 777000000;
-constexpr ompt_id_t           unknown_host_op_id  = 888888888;
-static std::atomic<ompt_id_t> next_host_op_id     = 888000000;
+static std::atomic<ompt_id_t> next_parallel_id    { 666000000 };
+constexpr ompt_id_t           unknown_target_id = 777777777;
+static std::atomic<ompt_id_t> next_target_id      { 777000000 };
+constexpr ompt_id_t           unknown_host_op_id = 888888888;
+static std::atomic<ompt_id_t> next_host_op_id     { 888000000 };
 
 static __thread int32_t     thread_id = unknown_thread_id;
 static std::atomic<int32_t> next_thread_id { 0 };
