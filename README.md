@@ -40,13 +40,13 @@ By default, the tool is built with mode 2.
 These are the requirements to build the tool with the available build system.
 The library can also be built manually, but is not covered here.
 
-- CMake 3.24 or newer
+- CMake 3.10 or newer
 - A C++17 compliant compiler
 - An OpenMP runtime supporting the OMPT interface (e.g. LLVM/Clang, oneAPI,
   NVHPC, ...)
 - CMake will only check the presence of the `omp-tools.h` header file.
   Actual runtime support is not checked.
-  
+
 ## Build the library
 
 The library can easily be built with CMake. On a checked-out or downloaded

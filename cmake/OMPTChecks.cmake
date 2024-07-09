@@ -33,7 +33,6 @@
 #
 
 include( CheckIncludeFile )
-include( CheckSymbolExists )
 include( CheckTypeSize )
 
 function( OMPT_HEADER_CHECK )

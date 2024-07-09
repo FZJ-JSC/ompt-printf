@@ -32,13 +32,15 @@
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-cmake_minimum_required( VERSION 3.24 )
+cmake_minimum_required( VERSION 3.10 )
 
 include( cmake/DefineCompilerToolchain.cmake )
 project( ompt-printf LANGUAGES C CXX )
 
 set( CMAKE_VERBOSE_MAKEFILE ON CACHE BOOL "Verbose makefile" )
-set( CMAKE_COMPILE_WARNING_AS_ERROR ON CACHE BOOL "Compile warnings as errors" )
+if( CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0" )
+    set( CMAKE_COMPILE_WARNING_AS_ERROR ON CACHE BOOL "Compile warnings as errors" )
+endif()
 
 include( cmake/OMPTChecks.cmake )
 OMPT_HEADER_CHECK()
