@@ -92,7 +92,7 @@ $ export OMP_TOOL_LIBRARIES=$(pwd)/build/src/libompt-printf.so
 $ clang -fopenmp my-openmp-example.c -o my-openmp-example
 $ OMP_NUM_THREADS=2 ./my-openmp-example
 [-1][ompt_start_tool] omp_version = 201611 | runtime_version = LLVM OMP version: 5.0.20140926
-[-1][tool_initialize] lookup = 0x737b2aec8820 | initial_device_num = 0 | tool_data = 0x737b2ae0b428
+[-1][tool_initialize] lookup = 0x77bdfa723820 | initial_device_num = 0 | tool_data = 0x77bdfa666428
 [-1][tool_initialize]       thread_begin = always
 [-1][tool_initialize]         thread_end = always
 [-1][tool_initialize]     parallel_begin = always
@@ -124,25 +124,25 @@ $ OMP_NUM_THREADS=2 ./my-openmp-example
 [-1][tool_initialize]     target_map_emi = never
 [-1][tool_initialize] target_data_op_emi = always
 [-1][tool_initialize]  target_submit_emi = always
-[0][callback_thread_begin] thread_type = initial | thread_data = 0x5d77386b8808
-[0][callback_implicit_task] endpoint = begin | parallel_data->value = 0 | task_data->value = 555000001 | actual_parallelism = 1 | index = 1 | flags = initial
-[0][callback_parallel_begin] encountering_task_data->value = 555000001 | encountering_task_frame = 0x5d77386b4828 | parallel_data->value = 666000001 | requested_parallelism = 2 | flags = runtime_team | codeptr_ra = 0x5d7737f86166
-[0][callback_implicit_task] endpoint = begin | parallel_data->value = 666000001 | task_data->value = 555000002 | actual_parallelism = 2 | index = 0 | flags = implicit
-[0][callback_sync_region] kind = barrier_implicit | endpoint = begin | parallel_data->value = 666000001 | task_data->value = 555000002 | codeptr_ra = 0x5d7737f86166
-[0][callback_sync_region_wait] kind = barrier_implicit | endpoint = begin | parallel_data->value = 666000001 | task_data->value = 555000002 | codeptr_ra = 0x5d7737f86166
-[1][callback_thread_begin] thread_type = worker | thread_data = 0x5d77386c0a88
-[1][callback_implicit_task] endpoint = begin | parallel_data->value = 666000001 | task_data->value = 555000003 | actual_parallelism = 2 | index = 1 | flags = implicit
-[1][callback_sync_region] kind = barrier_implicit | endpoint = begin | parallel_data->value = 666000001 | task_data->value = 555000003 | codeptr_ra = (nil)
-[1][callback_sync_region_wait] kind = barrier_implicit | endpoint = begin | parallel_data->value = 666000001 | task_data->value = 555000003 | codeptr_ra = (nil)
-[0][callback_sync_region_wait] kind = barrier_implicit | endpoint = end | parallel_data->value = 666666666 | task_data->value = 555000002 | codeptr_ra = 0x5d7737f86166
-[0][callback_sync_region] kind = barrier_implicit | endpoint = end | parallel_data->value = 666666666 | task_data->value = 555000002 | codeptr_ra = 0x5d7737f86166
-[0][callback_implicit_task] endpoint = end | parallel_data->value = 666666666 | task_data->value = 555000002 | actual_parallelism = 2 | index = 0 | flags = implicit
-[0][callback_parallel_end] parallel_data->value = 0x5d77386b4b20 | encountering_task_data->value = 555000001 | flags = runtime_team | codeptr_ra = 0x5d7737f86166
-[0][callback_implicit_task] endpoint = end | parallel_data->value = 0 | task_data->value = 555000001 | actual_parallelism = 0 | index = 1 | flags = initial
-[0][callback_thread_end] thread_data = 0x5d77386b8808
-[1][callback_sync_region_wait] kind = barrier_implicit | endpoint = end | parallel_data->value = 666666666 | task_data->value = 555000003 | codeptr_ra = (nil)
-[1][callback_sync_region] kind = barrier_implicit | endpoint = end | parallel_data->value = 666666666 | task_data->value = 555000003 | codeptr_ra = (nil)
-[1][callback_implicit_task] endpoint = end | parallel_data->value = 666666666 | task_data->value = 555000003 | actual_parallelism = 0 | index = 1 | flags = implicit
-[1][callback_thread_end] thread_data = 0x5d77386c0a88
-[0][tool_finalize] tool_data = 0x737b2ae0b428
+[0][callback_thread_begin] thread_type = initial | thread_data = 0x624479fb3808
+[0][callback_implicit_task] endpoint = begin | parallel_data->value = 0 (0x624479faef20) | task_data->value = 555000001 (0x624479faf840) | actual_parallelism = 1 | index = 1 | flags = initial
+[0][callback_parallel_begin] encountering_task_data->value = 555000001 (0x624479faf840) | encountering_task_frame = 0x624479faf828 | parallel_data->value = 666000001 (0x7ffe86f3cb00) | requested_parallelism = 2 | flags = runtime_team | codeptr_ra = 0x624479026166
+[0][callback_implicit_task] endpoint = begin | parallel_data->value = 666000001 (0x624479fafb20) | task_data->value = 555000002 (0x624479fb0f00) | actual_parallelism = 2 | index = 0 | flags = implicit
+[0][callback_sync_region] kind = barrier_implicit | endpoint = begin | parallel_data->value = 666000001 (0x624479fafb20) | task_data->value = 555000002 (0x624479fb0f00) | codeptr_ra = 0x624479026166
+[0][callback_sync_region_wait] kind = barrier_implicit | endpoint = begin | parallel_data->value = 666000001 (0x624479fafb20) | task_data->value = 555000002 (0x624479fb0f00) | codeptr_ra = 0x624479026166
+[1][callback_thread_begin] thread_type = worker | thread_data = 0x624479fbba88
+[1][callback_implicit_task] endpoint = begin | parallel_data->value = 666000001 (0x624479fafb20) | task_data->value = 555000003 (0x624479fb1040) | actual_parallelism = 2 | index = 1 | flags = implicit
+[1][callback_sync_region] kind = barrier_implicit | endpoint = begin | parallel_data->value = 666000001 (0x624479fafb20) | task_data->value = 555000003 (0x624479fb1040) | codeptr_ra = (nil)
+[1][callback_sync_region_wait] kind = barrier_implicit | endpoint = begin | parallel_data->value = 666000001 (0x624479fafb20) | task_data->value = 555000003 (0x624479fb1040) | codeptr_ra = (nil)
+[0][callback_sync_region_wait] kind = barrier_implicit | endpoint = end | parallel_data->value = 666666666 ((nil)) | task_data->value = 555000002 (0x624479fb0f00) | codeptr_ra = 0x624479026166
+[0][callback_sync_region] kind = barrier_implicit | endpoint = end | parallel_data->value = 666666666 ((nil)) | task_data->value = 555000002 (0x624479fb0f00) | codeptr_ra = 0x624479026166
+[0][callback_implicit_task] endpoint = end | parallel_data->value = 666666666 ((nil)) | task_data->value = 555000002 (0x624479fb0f00) | actual_parallelism = 2 | index = 0 | flags = implicit
+[0][callback_parallel_end] parallel_data->value = 666000001 (0x624479fafb20) | encountering_task_data->value = 555000001 (0x624479faf840) | flags = runtime_team | codeptr_ra = 0x624479026166
+[0][callback_implicit_task] endpoint = end | parallel_data->value = 0 (0x624479faef20) | task_data->value = 555000001 (0x624479faf840) | actual_parallelism = 0 | index = 1 | flags = initial
+[0][callback_thread_end] thread_data = 0x624479fb3808
+[1][callback_sync_region_wait] kind = barrier_implicit | endpoint = end | parallel_data->value = 666666666 ((nil)) | task_data->value = 555000003 (0x624479fbba90) | codeptr_ra = (nil)
+[1][callback_sync_region] kind = barrier_implicit | endpoint = end | parallel_data->value = 666666666 ((nil)) | task_data->value = 555000003 (0x624479fbba90) | codeptr_ra = (nil)
+[1][callback_implicit_task] endpoint = end | parallel_data->value = 666666666 ((nil)) | task_data->value = 555000003 (0x624479fbba90) | actual_parallelism = 0 | index = 1 | flags = implicit
+[1][callback_thread_end] thread_data = 0x624479fbba88
+[0][tool_finalize] tool_data = 0x77bdfa666428
 ```

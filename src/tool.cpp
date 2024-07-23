@@ -860,12 +860,14 @@ callback_parallel_begin( ompt_data_t*        encountering_task_data,
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
-        atomic_printf( "[%s] encountering_task_data->value = %lu | encountering_task_frame = %p | "
-                       "parallel_data->value = %lu | requested_parallelism = %u | flags = %s | codeptr_ra = %p\n",
+        atomic_printf( "[%s] encountering_task_data->value = %lu (%p) | encountering_task_frame = %p | "
+                       "parallel_data->value = %lu (%p) | requested_parallelism = %u | flags = %s | codeptr_ra = %p\n",
                        __FUNCTION__,
                        encountering_task_data ? encountering_task_data->value : unknown_task_id,
+                       encountering_task_data,
                        encountering_task_frame,
                        parallel_data ? parallel_data->value : unknown_parallel_id,
+                       parallel_data,
                        requested_parallelism,
                        parallel_flag2string( flags ).c_str(),
                        codeptr_ra );
@@ -885,11 +887,13 @@ callback_parallel_end( ompt_data_t* parallel_data,
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
-        atomic_printf( "[%s] parallel_data->value = %p | encountering_task_data->value = %lu | flags = %s | "
+        atomic_printf( "[%s] parallel_data->value = %lu (%p) | encountering_task_data->value = %lu (%p) | flags = %s | "
                        "codeptr_ra = %p\n",
                        __FUNCTION__,
+                       parallel_data ? parallel_data->value : unknown_parallel_id,
                        parallel_data,
                        encountering_task_data ? encountering_task_data->value : unknown_task_id,
+                       encountering_task_data,
                        parallel_flag2string( flags ).c_str(),
                        codeptr_ra );
     }
@@ -918,12 +922,13 @@ callback_task_create( ompt_data_t*        encountering_task_data,
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
-        atomic_printf( "[%s] encountering_task_data->value = %lu | encountering_task_frame = %p | "
-                       "new_task_data->value = %lu | flags = %s | has_dependences = %d | codeptr_ra = %p\n",
+        atomic_printf( "[%s] encountering_task_data->value = %lu (%p) | encountering_task_frame = %p | "
+                       "new_task_data->value = %lu (%p) | flags = %s | has_dependences = %d | codeptr_ra = %p\n",
                        __FUNCTION__,
                        encountering_task_data ? encountering_task_data->value : unknown_task_id,
                        encountering_task_frame,
                        new_task_data ? new_task_data->value : unknown_task_id,
+                       new_task_data,
                        task_flag2string( flags ).c_str(),
                        has_dependences,
                        codeptr_ra );
@@ -942,12 +947,14 @@ callback_task_schedule( ompt_data_t*       prior_task_data,
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
-        atomic_printf( "[%s] prior_task_data->value = %lu | prior_task_status = %s | "
-                       "next_task_data->value = %lu\n",
+        atomic_printf( "[%s] prior_task_data->value = %lu (%p) | prior_task_status = %s | "
+                       "next_task_data->value = %lu (%p)\n",
                        __FUNCTION__,
                        prior_task_data ? prior_task_data->value : unknown_task_id,
+                       prior_task_data,
                        task_status2string( prior_task_status ).c_str(),
-                       next_task_data ? next_task_data->value : unknown_task_id );
+                       next_task_data ? next_task_data->value : unknown_task_id,
+                       next_task_data );
     }
 }
 
@@ -974,12 +981,14 @@ callback_implicit_task( ompt_scope_endpoint_t endpoint,
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
-        atomic_printf( "[%s] endpoint = %s | parallel_data->value = %lu | task_data->value = %lu | "
+        atomic_printf( "[%s] endpoint = %s | parallel_data->value = %lu (%p) | task_data->value = %lu (%p) | "
                        "actual_parallelism = %u | index = %u | flags = %s\n",
                        __FUNCTION__,
                        endpoint2string( endpoint ).c_str(),
                        parallel_data ? parallel_data->value : unknown_parallel_id,
+                       parallel_data,
                        task_data ? task_data->value : unknown_task_id,
+                       task_data,
                        actual_parallelism,
                        index,
                        task_flag2string( flags ).c_str() );
@@ -1001,13 +1010,15 @@ callback_sync_region_wait( ompt_sync_region_t    kind,
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
-        atomic_printf( "[%s] kind = %s | endpoint = %s | parallel_data->value = %lu | "
-                       "task_data->value = %lu | codeptr_ra = %p\n",
+        atomic_printf( "[%s] kind = %s | endpoint = %s | parallel_data->value = %lu (%p) | "
+                       "task_data->value = %lu (%p) | codeptr_ra = %p\n",
                        __FUNCTION__,
                        sync2string( kind ).c_str(),
                        endpoint2string( endpoint ).c_str(),
                        parallel_data ? parallel_data->value : unknown_parallel_id,
+                       parallel_data,
                        task_data ? task_data->value : unknown_task_id,
+                       task_data,
                        codeptr_ra );
     }
 }
@@ -1044,9 +1055,10 @@ callback_dependences( ompt_data_t*             task_data,
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
-        atomic_printf( "[%s] task_data->value = %lu | deps = %p | ndeps = %d\n",
+        atomic_printf( "[%s] task_data->value = %lu (%p) | deps = %p | ndeps = %d\n",
                        __FUNCTION__,
                        task_data ? task_data->value : unknown_task_id,
+                       task_data,
                        deps,
                        ndeps );
         for ( int i = 0; i < ndeps; ++i )
@@ -1072,10 +1084,12 @@ callback_task_dependence( ompt_data_t* src_task_data,
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
-        atomic_printf( "[%s] src_task_data->value = %lu | sink_task_data->value = %lu\n",
+        atomic_printf( "[%s] src_task_data->value = %lu (%p) | sink_task_data->value = %lu (%p)\n",
                        __FUNCTION__,
                        src_task_data ? src_task_data->value : unknown_task_id,
-                       sink_task_data ? sink_task_data->value : unknown_task_id );
+                       src_task_data,
+                       sink_task_data ? sink_task_data->value : unknown_task_id,
+                       sink_task_data );
     }
 }
 
@@ -1094,13 +1108,15 @@ callback_work( ompt_work_t           work_type,
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
-        atomic_printf( "[%s] work_type = %s | endpoint = %s | parallel_data->value = %lu | "
-                       "task_data->value = %lu | count = %lu | codeptr_ra = %p\n",
+        atomic_printf( "[%s] work_type = %s | endpoint = %s | parallel_data->value = %lu (%p) | "
+                       "task_data->value = %lu (%p) | count = %lu | codeptr_ra = %p\n",
                        __FUNCTION__,
                        work2string( work_type ).c_str(),
                        endpoint2string( endpoint ).c_str(),
                        parallel_data ? parallel_data->value : unknown_parallel_id,
+                       parallel_data,
                        task_data ? task_data->value : unknown_task_id,
+                       task_data,
                        count,
                        codeptr_ra );
     }
@@ -1119,12 +1135,14 @@ callback_masked( ompt_scope_endpoint_t endpoint,
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
-        atomic_printf( "[%s] endpoint = %s | parallel_data->value = %lu | "
-                       "task_data->value = %lu | codeptr_ra = %p\n",
+        atomic_printf( "[%s] endpoint = %s | parallel_data->value = %lu (%p) | "
+                       "task_data->value = %lu (%p) | codeptr_ra = %p\n",
                        __FUNCTION__,
                        endpoint2string( endpoint ).c_str(),
                        parallel_data ? parallel_data->value : unknown_parallel_id,
+                       parallel_data,
                        task_data ? task_data->value : unknown_task_id,
+                       task_data,
                        codeptr_ra );
     }
 }
@@ -1143,13 +1161,15 @@ callback_sync_region( ompt_sync_region_t    kind,
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
-        atomic_printf( "[%s] kind = %s | endpoint = %s | parallel_data->value = %lu | "
-                       "task_data->value = %lu | codeptr_ra = %p\n",
+        atomic_printf( "[%s] kind = %s | endpoint = %s | parallel_data->value = %lu (%p) | "
+                       "task_data->value = %lu (%p) | codeptr_ra = %p\n",
                        __FUNCTION__,
                        sync2string( kind ).c_str(),
                        endpoint2string( endpoint ).c_str(),
                        parallel_data ? parallel_data->value : unknown_parallel_id,
+                       parallel_data,
                        task_data ? task_data->value : unknown_task_id,
+                       task_data,
                        codeptr_ra );
     }
 }
@@ -1288,9 +1308,10 @@ callback_cancel( ompt_data_t* task_data,
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
-        atomic_printf( "[%s] task_data->value = %lu | flags = %s | codeptr_ra = %p\n",
+        atomic_printf( "[%s] task_data->value = %lu (%p) | flags = %s | codeptr_ra = %p\n",
                        __FUNCTION__,
                        task_data ? task_data->value : unknown_task_id,
+                       task_data,
                        cancel2string( flags ).c_str(),
                        codeptr_ra );
     }
@@ -1310,13 +1331,15 @@ callback_reduction( ompt_sync_region_t    kind,
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
-        atomic_printf( "[%s] kind = %s | endpoint = %s | parallel_data->value = %lu | "
-                       "task_data->value = %lu | codeptr_ra = %p\n",
+        atomic_printf( "[%s] kind = %s | endpoint = %s | parallel_data->value = %lu (%p) | "
+                       "task_data->value = %lu (%p) | codeptr_ra = %p\n",
                        __FUNCTION__,
                        sync2string( kind ).c_str(),
                        endpoint2string( endpoint ).c_str(),
                        parallel_data ? parallel_data->value : unknown_parallel_id,
+                       parallel_data,
                        task_data ? task_data->value : unknown_task_id,
+                       task_data,
                        codeptr_ra );
     }
 }
@@ -1334,11 +1357,13 @@ callback_dispatch( ompt_data_t*    parallel_data,
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
-        atomic_printf( "[%s] parallel_data->value = %lu | task_data->value = %lu | kind = %s | "
+        atomic_printf( "[%s] parallel_data->value = %lu (%p) | task_data->value = %lu (%p) | kind = %s | "
                        "instance->value = %lu\n",
                        __FUNCTION__,
                        parallel_data ? parallel_data->value : unknown_parallel_id,
+                       parallel_data,
                        task_data ? task_data->value : unknown_task_id,
+                       task_data,
                        dispatch2string( kind ).c_str(),
                        instance.value );
     }
@@ -1711,9 +1736,10 @@ callback_target_map_emi( ompt_data_t*  target_data,
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
-        atomic_printf( "[%s] target_data->value = %lu | nitems = %u | codeptr_ra = %p\n",
+        atomic_printf( "[%s] target_data->value = %lu (%p) | nitems = %u | codeptr_ra = %p\n",
                        __FUNCTION__,
                        target_data ? target_data->value : unknown_target_id,
+                       target_data,
                        nitems,
                        codeptr_ra );
         for ( unsigned int i = 0; i < nitems; ++i )
@@ -1757,15 +1783,18 @@ callback_target_emi( ompt_target_t         kind,
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
-        atomic_printf( "[%s] kind = %s | endpoint = %s | device_num = %d | task_data->value = %lu | "
-                       "target_task_data->value = %lu  | target_data->value = %lu  | codeptr_ra = %p\n",
+        atomic_printf( "[%s] kind = %s | endpoint = %s | device_num = %d | task_data->value = %lu (%p) | "
+                       "target_task_data->value = %lu (%p) | target_data->value = %lu (%p) | codeptr_ra = %p\n",
                        __FUNCTION__,
                        target2string( kind ).c_str(),
                        endpoint2string( endpoint ).c_str(),
                        device_num,
                        task_data ? task_data->value : unknown_task_id,
+                       task_data,
                        target_task_data ? target_task_data->value : unknown_task_id,
+                       target_task_data,
                        target_data ? target_data->value : unknown_target_id,
+                       target_data,
                        codeptr_ra );
     }
 }
@@ -1798,14 +1827,17 @@ callback_target_data_op_emi( ompt_scope_endpoint_t endpoint,
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
-        atomic_printf( "[%s] endpoint = %s | target_task_data->value = %lu | target_data->value = %lu "
-                       "| *host_op_id = %lu | optype = %s | src_addr = %p | src_device_num = %d | dest_addr = %p | "
+        atomic_printf( "[%s] endpoint = %s | target_task_data->value = %lu (%p) | target_data->value = %lu (%p) "
+                       "| *host_op_id = %lu (%p) | optype = %s | src_addr = %p | src_device_num = %d | dest_addr = %p | "
                        "dest_device_num = %d | bytes = %lu | codeptr_ra = %p\n",
                        __FUNCTION__,
                        endpoint2string( endpoint ).c_str(),
                        target_task_data ? target_task_data->value : unknown_target_id,
+                       target_task_data,
                        target_data ? target_data->value : unknown_target_id,
+                       target_data,
                        host_op_id ? *host_op_id : unknown_host_op_id,
+                       host_op_id,
                        data_op2string( optype ).c_str(),
                        src_addr,
                        src_device_num,
@@ -1837,12 +1869,14 @@ callback_target_submit_emi( ompt_scope_endpoint_t endpoint,
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
-        atomic_printf( "[%s] endpoint = %s | target_data->value = %lu | "
-                       "*host_op_id = %lu | requested_num_teams = %u\n",
+        atomic_printf( "[%s] endpoint = %s | target_data->value = %lu (%p) | "
+                       "*host_op_id = %lu (%p) | requested_num_teams = %u\n",
                        __FUNCTION__,
                        endpoint2string( endpoint ).c_str(),
                        target_data ? target_data->value : unknown_target_id,
+                       target_data,
                        host_op_id ? *host_op_id : unknown_host_op_id,
+                       host_op_id,
                        requested_num_teams );
     }
 }
