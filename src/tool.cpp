@@ -1420,6 +1420,19 @@ callback_buffer_complete( int                  device_num,
                        buffer_owned );
     }
 
+    /* AMD implementation might return buffer complete callback to indicate buffer
+     * that can be freed, but does not set bytes (bytes == 0). This buffer
+     * was previously already evaluated. Trying to evaluate it again will
+     * cause a segmentation fault. */
+    if ( bytes == 0 )
+    {
+        if ( buffer_owned )
+        {
+            delete[] ( ompt_record_ompt_t* )buffer;
+        }
+        return;
+    }
+
     auto device = devices.find( device_num );
     assert( device != devices.end() && "Device not found" );
     auto current_cursor = begin;
