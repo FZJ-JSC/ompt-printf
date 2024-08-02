@@ -126,9 +126,9 @@ atomic_printf( const char* format, ... )
 }
 
 static inline int
-print_function_name()
+print_function_name( const char* function )
 {
-    return atomic_printf( "[%s]\n", __FUNCTION__ );
+    return atomic_printf( "[%s]\n", function );
 }
 
 /* typedef enum ompt_set_result_t {
@@ -810,7 +810,7 @@ callback_thread_begin( ompt_thread_t thread_type,
     }
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -827,7 +827,7 @@ callback_thread_end( ompt_data_t* thread_data )
 {
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -856,7 +856,7 @@ callback_parallel_begin( ompt_data_t*        encountering_task_data,
 
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -883,7 +883,7 @@ callback_parallel_end( ompt_data_t* parallel_data,
 {
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -918,7 +918,7 @@ callback_task_create( ompt_data_t*        encountering_task_data,
 
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -943,7 +943,7 @@ callback_task_schedule( ompt_data_t*       prior_task_data,
 {
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -977,7 +977,7 @@ callback_implicit_task( ompt_scope_endpoint_t endpoint,
 
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -1006,7 +1006,7 @@ callback_sync_region_wait( ompt_sync_region_t    kind,
 {
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -1031,7 +1031,7 @@ callback_mutex_released( ompt_mutex_t   kind,
 {
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -1051,7 +1051,7 @@ callback_dependences( ompt_data_t*             task_data,
 {
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -1080,7 +1080,7 @@ callback_task_dependence( ompt_data_t* src_task_data,
 {
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -1104,7 +1104,7 @@ callback_work( ompt_work_t           work_type,
 {
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -1131,7 +1131,7 @@ callback_masked( ompt_scope_endpoint_t endpoint,
 {
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -1157,7 +1157,7 @@ callback_sync_region( ompt_sync_region_t    kind,
 {
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -1177,18 +1177,22 @@ callback_sync_region( ompt_sync_region_t    kind,
 template<printf_mode mode>
 void
 callback_lock_init( ompt_mutex_t   kind,
+                    unsigned int   hint,
+                    unsigned int   impl,
                     ompt_wait_id_t wait_id,
                     const void*    codeptr_ra )
 {
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
-        atomic_printf( "[%s] kind = %s | wait_id = %lu | codeptr_ra = %p\n",
+        atomic_printf( "[%s] kind = %s | hint = %u | impl = %u | wait_id = %lu | codeptr_ra = %p\n",
                        __FUNCTION__,
                        mutex2string( kind ).c_str(),
+                       hint,
+                       impl,
                        wait_id,
                        codeptr_ra );
     }
@@ -1202,7 +1206,7 @@ callback_lock_destroy( ompt_mutex_t   kind,
 {
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -1224,7 +1228,7 @@ callback_mutex_acquire( ompt_mutex_t   kind,
 {
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -1246,7 +1250,7 @@ callback_mutex_acquired( ompt_mutex_t   kind,
 {
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -1266,7 +1270,7 @@ callback_nest_lock( ompt_scope_endpoint_t endpoint,
 {
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -1285,7 +1289,7 @@ callback_flush( ompt_data_t* thread_data,
 {
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -1304,7 +1308,7 @@ callback_cancel( ompt_data_t* task_data,
 {
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -1327,7 +1331,7 @@ callback_reduction( ompt_sync_region_t    kind,
 {
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -1353,7 +1357,7 @@ callback_dispatch( ompt_data_t*    parallel_data,
 {
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -1385,7 +1389,7 @@ callback_buffer_request( int             device_num,
 
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -1407,7 +1411,7 @@ callback_buffer_complete( int                  device_num,
 {
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -1545,7 +1549,7 @@ callback_device_initialize( int                    device_num,
 {
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -1657,7 +1661,7 @@ callback_device_finalize( int device_num )
 {
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -1697,7 +1701,7 @@ callback_device_load( int         device_num,
 {
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -1722,7 +1726,7 @@ callback_device_unload( int      device_num,
 {
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -1745,7 +1749,7 @@ callback_target_map_emi( ompt_data_t*  target_data,
 {
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -1792,7 +1796,7 @@ callback_target_emi( ompt_target_t         kind,
 
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -1836,7 +1840,7 @@ callback_target_data_op_emi( ompt_scope_endpoint_t endpoint,
 
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -1878,7 +1882,7 @@ callback_target_submit_emi( ompt_scope_endpoint_t endpoint,
 
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -1904,7 +1908,7 @@ tool_initialize( ompt_function_lookup_t lookup,
 {
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -2007,7 +2011,7 @@ tool_finalize( ompt_data_t* tool_data )
 {
     if constexpr ( mode == printf_mode::callback )
     {
-        print_function_name();
+        print_function_name( __FUNCTION__ );
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -2046,7 +2050,7 @@ ompt_start_tool( unsigned int omp_version,
             tool.finalize   = &tool_finalize<printf_mode::disable_output>;
             break;
         case printf_mode::callback:
-            print_function_name();
+            print_function_name( __FUNCTION__ );
             tool.initialize = &tool_initialize<printf_mode::callback>;
             tool.finalize   = &tool_finalize<printf_mode::callback>;
             break;
