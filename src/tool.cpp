@@ -2163,6 +2163,63 @@ callback_target_data_op_emi( ompt_scope_endpoint_t endpoint,
                        dest_device_num,
                        bytes,
                        codeptr_ra );
+        if (
+            false
+            #if HAVE( OMPT_TARGET_DATA_TRANSFER_RECT )
+            || optype == ompt_target_data_transfer_rect
+            #endif
+            #if HAVE( OMPT_TARGET_DATA_TRANSFER_RECT_ASYNC )
+            || optype == ompt_target_data_transfer_rect_async
+            #endif
+            )
+        {
+            #if HAVE( OMPT_SUBVOLUME )
+            ompt_subvolume_t* subvolume_src  = ( ompt_subvolume_t* )dev1_addr;
+            ompt_subvolume_t* subvolume_dest = ( ompt_subvolume_t* )dev2_addr;
+
+            atomic_printf( "[%s] src_base = %p | src_size = %lu | src_num_dims = %lu | src_volume = %p | "
+                           "src_offsets = %p | src_dimensions = %p\n",
+                           __FUNCTION__,
+                           subvolume_src->base,
+                           subvolume_src->size,
+                           subvolume_src->num_dims,
+                           subvolume_src->volume,
+                           subvolume_src->offsets,
+                           subvolume_src->dimensions );
+            for ( int i = 0; i < subvolume_src->num_dims; i++ )
+            {
+                atomic_printf( "[%s] src_volume[%d] = %lu | src_offsets[%d] = %lu | src_dimensions[%d] = %lu\n",
+                               __FUNCTION__,
+                               i,
+                               subvolume_src->volume[ i ],
+                               i,
+                               subvolume_src->offsets[ i ],
+                               i,
+                               subvolume_src->dimensions[ i ] );
+            }
+
+            atomic_printf( "[%s] dest_base = %p | dest_size = %lu | dest_num_dims = %lu | dest_volume = %p | "
+                           "dest_offsets = %p | dest_dimensions = %p\n",
+                           __FUNCTION__,
+                           subvolume_dest->base,
+                           subvolume_dest->size,
+                           subvolume_dest->num_dims,
+                           subvolume_dest->volume,
+                           subvolume_dest->offsets,
+                           subvolume_dest->dimensions );
+            for ( int i = 0; i < subvolume_dest->num_dims; i++ )
+            {
+                atomic_printf( "[%s] dest_volume[%d] = %lu | dest_offsets[%d] = %lu | dest_dimensions[%d] = %lu\n",
+                               __FUNCTION__,
+                               i,
+                               subvolume_dest->volume[ i ],
+                               i,
+                               subvolume_dest->offsets[ i ],
+                               i,
+                               subvolume_dest->dimensions[ i ] );
+            }
+            #endif
+        }
     }
 }
 
