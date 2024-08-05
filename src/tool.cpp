@@ -91,6 +91,9 @@ typedef struct device_functions_t
     /* Optional functions */
     ompt_stop_trace_t            stop_trace;
     ompt_pause_trace_t           pause_trace;
+    #if HAVE( OMPT_GET_BUFFER_LIMITS )
+    ompt_get_buffer_limits_t     get_buffer_limits;
+    #endif
 } device_functions_t;
 
 typedef struct device_t
@@ -98,6 +101,11 @@ typedef struct device_t
     ompt_device_t*     address = nullptr;
     std::string        name;
     device_functions_t device_functions = { nullptr };
+    #if HAVE( OMPT_GET_BUFFER_LIMITS )
+    size_t             recommended_buffer_size   = 0;
+    int                recommended_buffer_amount = 0;
+    int                allocated_buffers         = 0;
+    #endif
 } device_t;
 
 static std::unordered_map<ompt_id_t, device_t*> devices;
@@ -228,6 +236,8 @@ parallel_flag2string( uint32_t flags )
  *   ompt_task_explicit   = 0x00000004,
  *   ompt_task_target     = 0x00000008,
  *   ompt_task_taskwait   = 0x00000010,
+ *   ompt_task_importing  = 0x02000000,
+ *   ompt_task_exporting  = 0x04000000,
  *   ompt_task_undeferred = 0x08000000,
  *   ompt_task_untied     = 0x10000000,
  *   ompt_task_final      = 0x20000000,
@@ -291,6 +301,20 @@ task_flag2string( uint32_t flags )
         result << "_merged";
         flags -= ompt_task_merged;
     }
+
+    #if HAVE( OMPT_TASK_IMPORTING ) && HAVE( OMPT_TASK_EXPORTING )
+    if ( flags & ompt_task_importing )
+    {
+        result << "_importing";
+        flags -= ompt_task_importing;
+    }
+    else if ( flags & ompt_task_exporting )
+    {
+        result << "_exporting";
+        flags -= ompt_task_exporting;
+    }
+    #endif
+
     assert( flags == 0 && "Unknown ompt_task_flag_t" );
     return result.str();
 }
@@ -488,6 +512,7 @@ cancel2string( int t )
  *     ompt_work_distribute      = 6,
  *     ompt_work_taskloop        = 7,
  *     ompt_work_scope           = 8,
+ *     ompt_work_workdistribute  = 9,
  *     ompt_work_loop_static     = 10,
  *     ompt_work_loop_dynamic    = 11,
  *     ompt_work_loop_guided     = 12,
@@ -515,6 +540,10 @@ work2string( ompt_work_t t )
         #if HAVE( OMPT_WORK_SCOPE )
         case ompt_work_scope:
             return "scope";
+        #endif
+        #if HAVE( OMPT_WORK_WORKDISTRIBUTE )
+        case ompt_work_workdistribute:
+            return "workdistribute";
         #endif
         #if HAVE( OMPT_WORK_LOOP_STATIC )
         case ompt_work_loop_static:
@@ -555,10 +584,14 @@ sync2string( ompt_sync_region_t t )
 {
     switch ( t )
     {
+        #if HAVE( OMPT_SYNC_REGION_BARRIER )
         case ompt_sync_region_barrier:
             return "barrier";
+        #endif
+        #if HAVE( OMPT_SYNC_REGION_BARRIER_IMPLICIT )
         case ompt_sync_region_barrier_implicit:
             return "barrier_implicit";
+        #endif
         case ompt_sync_region_barrier_explicit:
             return "barrier_explicit";
         case ompt_sync_region_barrier_implementation:
@@ -594,10 +627,16 @@ sync2string( ompt_sync_region_t t )
  *     ompt_target_data_delete                     = 4,
  *     ompt_target_data_associate                  = 5,
  *     ompt_target_data_disassociate               = 6,
+ *     ompt_target_data_transfer                   = 7,
+ *     ompt_target_data_memset                     = 8,
+ *     ompt_target_data_transfer_rect              = 9,
  *     ompt_target_data_alloc_async                = 17,
  *     ompt_target_data_transfer_to_device_async   = 18,
  *     ompt_target_data_transfer_from_device_async = 19,
- *     ompt_target_data_delete_async               = 20
+ *     ompt_target_data_delete_async               = 20,
+ *     ompt_target_data_transfer_async             = 23,
+ *     ompt_target_data_memset_async               = 24,
+ *     ompt_target_data_transfer_rect_async        = 25
  * } ompt_target_data_op_t; */
 static inline std::string
 data_op2string( ompt_target_data_op_t t )
@@ -605,20 +644,36 @@ data_op2string( ompt_target_data_op_t t )
     switch ( t )
     {
         case ompt_target_data_alloc:
-            return "data_alloc";
+            return "alloc";
+        #if HAVE( OMPT_TARGET_DATA_TRANSFER_TO_DEVICE )
         case ompt_target_data_transfer_to_device:
             return "transfer_to_device";
+        #endif
+        #if HAVE( OMPT_TARGET_DATA_TRANSFER_FROM_DEVICE )
         case ompt_target_data_transfer_from_device:
             return "transfer_from_device";
+        #endif
         case ompt_target_data_delete:
-            return "data_delete";
+            return "delete";
         case ompt_target_data_associate:
-            return "data_associate";
+            return "associate";
         case ompt_target_data_disassociate:
-            return "data_disassociate";
+            return "disassociate";
+        #if HAVE( OMPT_TARGET_DATA_TRANSFER )
+        case ompt_target_data_transfer:
+            return "transfer";
+        #endif
+        #if HAVE( OMPT_TARGET_DATA_MEMSET )
+        case ompt_target_data_memset:
+            return "memset";
+        #endif
+        #if HAVE( OMPT_TARGET_DATA_TRANSFER_RECT )
+        case ompt_target_data_transfer_rect:
+            return "transfer_rect";
+        #endif
         #if HAVE( OMPT_TARGET_DATA_ALLOC_ASYNC )
         case ompt_target_data_alloc_async:
-            return "data_alloc_async";
+            return "alloc_async";
         #endif
         #if HAVE( OMPT_TARGET_DATA_TRANSFER_TO_DEVICE_ASYNC )
         case ompt_target_data_transfer_to_device_async:
@@ -630,7 +685,19 @@ data_op2string( ompt_target_data_op_t t )
         #endif
         #if HAVE( OMPT_TARGET_DATA_DELETE_ASYNC )
         case ompt_target_data_delete_async:
-            return "data_delete_async";
+            return "delete_async";
+        #endif
+        #if HAVE( OMPT_TARGET_DATA_TRANSFER_ASYNC )
+        case ompt_target_data_transfer_async:
+            return "transfer_async";
+        #endif
+        #if HAVE( OMPT_TARGET_DATA_MEMSET_ASYNC )
+        case ompt_target_data_memset_async:
+            return "memset_async";
+        #endif
+        #if HAVE( OMPT_TARGET_DATA_TRANSFER_RECT_ASYNC )
+        case ompt_target_data_transfer_rect_async:
+            return "transfer_rect_async";
         #endif
         default:
             assert( false && "Unknown ompt_target_data_op_t" );
@@ -729,7 +796,7 @@ map_flag2string( unsigned int t )
         result << "implicit";
         t -= ompt_target_map_flag_implicit;
     }
-    #if HAVE( HAVE_OMPT_TARGET_MAP_FLAG_ALWAYS )
+    #if HAVE( OMPT_TARGET_MAP_FLAG_ALWAYS )
     else if ( t & ompt_target_map_flag_always )
     {
         result << "always";
@@ -762,13 +829,15 @@ map_flag2string( unsigned int t )
 }
 
 /* typedef enum ompt_dependence_type_t {
- *   ompt_dependence_type_in            = 1,
- *   ompt_dependence_type_out           = 2,
- *   ompt_dependence_type_inout         = 3,
- *   ompt_dependence_type_mutexinoutset = 4,
- *   ompt_dependence_type_source        = 5,
- *   ompt_dependence_type_sink          = 6,
- *   ompt_dependence_type_inoutset      = 7
+ *   ompt_dependence_type_in               = 1,
+ *   ompt_dependence_type_out              = 2,
+ *   ompt_dependence_type_inout            = 3,
+ *   ompt_dependence_type_mutexinoutset    = 4,
+ *   ompt_dependence_type_source           = 5,
+ *   ompt_dependence_type_sink             = 6,
+ *   ompt_dependence_type_inoutset         = 7,
+ *   ompt_dependence_type_out_all_memory   = 34,
+ *   ompt_dependence_type_inout_all_memory = 35
  * } ompt_dependence_type_t; */
 static inline std::string
 dependence_type2string( ompt_dependence_type_t t )
@@ -790,6 +859,14 @@ dependence_type2string( ompt_dependence_type_t t )
         #if HAVE( OMPT_DEPENDENCE_TYPE_INOUTSET )
         case ompt_dependence_type_inoutset:
             return "inoutset";
+        #endif
+        #if HAVE( OMPT_DEPENDENCE_TYPE_OUT_ALL_MEMORY )
+        case ompt_dependence_type_out_all_memory:
+            return "out_all_memory";
+        #endif
+        #if HAVE( OMPT_DEPENDENCE_TYPE_INOUT_ALL_MEMORY )
+        case ompt_dependence_type_inout_all_memory:
+            return "inout_all_memory";
         #endif
         default:
             assert( false && "Unknown ompt_dependence_type_t" );
@@ -1381,11 +1458,18 @@ callback_buffer_request( int             device_num,
                          ompt_buffer_t** buffer,
                          size_t*         bytes )
 {
+#if HAVE( OMPT_GET_BUFFER_LIMITS )
+    device_t* device = devices[ device_num ];
+    *bytes  = device->recommended_buffer_size;
+    *buffer = ::operator new( *bytes );
+    device->allocated_buffers++;
+#else
     constexpr size_t buffer_size = 100;
     constexpr size_t record_size = sizeof( ompt_record_ompt_t );
 
     *buffer = new ompt_record_ompt_t[ buffer_size ];
     *bytes  = buffer_size * record_size;
+#endif
 
     if constexpr ( mode == printf_mode::callback )
     {
@@ -1393,11 +1477,21 @@ callback_buffer_request( int             device_num,
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
+#if HAVE( OMPT_GET_BUFFER_LIMITS )
+        atomic_printf( "[%s] device_num = %d | buffer = %p (%d/%d) | bytes = %lu\n",
+                       __FUNCTION__,
+                       device_num,
+                       *buffer,
+                       device->allocated_buffers,
+                       device->recommended_buffer_amount,
+                       *bytes );
+#else
         atomic_printf( "[%s] device_num = %d | buffer = %p | bytes = %lu\n",
                        __FUNCTION__,
                        device_num,
                        buffer,
                        *bytes );
+#endif
     }
 }
 
@@ -1450,27 +1544,44 @@ callback_buffer_complete( int                  device_num,
                  ompt_id_t target_id; */
             switch ( record->type )
             {
+                #if HAVE( OMPT_CALLBACK_TARGET )
                 case ompt_callback_target:
+                #endif
                 #if HAVE( OMPT_CALLBACK_TARGET_EMI )
                 case ompt_callback_target_emi:
                 #endif
+                {
+                    #if HAVE( OMPT_RECORD_TARGET_EMI )
+                    ompt_record_target_emi_t target = record->record.target_emi;
+                    #elif HAVE( OMPT_RECORD_TARGET )
+                    ompt_record_target_t target = record->record.target;
+                    #endif
                     atomic_printf( "[%s] time = %lu | thread_id = %lu | target_id = %lu | kind = %s | "
                                    "endpoint = %s | device_num = %d | task_id = %lu | target_id = %lu | codeptr_ra = %p\n",
                                    __FUNCTION__,
                                    record->time,
                                    record->thread_id,
                                    record->target_id,
-                                   target2string( record->record.target.kind ).c_str(),
-                                   endpoint2string( record->record.target.endpoint ).c_str(),
-                                   record->record.target.device_num,
-                                   record->record.target.task_id,
-                                   record->record.target.target_id,
-                                   record->record.target.codeptr_ra );
+                                   target2string( target.kind ).c_str(),
+                                   endpoint2string( target.endpoint ).c_str(),
+                                   target.device_num,
+                                   target.task_id,
+                                   target.target_id,
+                                   target.codeptr_ra );
                     break;
+                }
+                #if HAVE( OMPT_CALLBACK_TARGET_DATA_OP )
                 case ompt_callback_target_data_op:
+                #endif
                 #if HAVE( OMPT_CALLBACK_TARGET_DATA_OP_EMI )
                 case ompt_callback_target_data_op_emi:
                 #endif
+                {
+                    #if HAVE( OMPT_RECORD_TARGET_DATA_OP_EMI )
+                    ompt_record_target_data_op_emi_t data_op = record->record.target_data_op_emi;
+                    #elif HAVE( OMPT_RECORD_TARGET_DATA_OP )
+                    ompt_record_target_data_op_t data_op = record->record.target_data_op;
+                    #endif
                     atomic_printf( "[%s] time = %lu | thread_id = %lu | target_id = %lu | host_op_id = %lu | "
                                    "optype = %s | src_addr = %p | src_device_num = %d | dest_addr = %p | "
                                    "dest_device_num = %d | bytes = %lu | end_time = %lu | codeptr_ra = %p\n",
@@ -1478,58 +1589,78 @@ callback_buffer_complete( int                  device_num,
                                    record->time,
                                    record->thread_id,
                                    record->target_id,
-                                   record->record.target_data_op.host_op_id,
-                                   data_op2string( record->record.target_data_op.optype ).c_str(),
-                                   record->record.target_data_op.src_addr,
-                                   record->record.target_data_op.src_device_num,
-                                   record->record.target_data_op.dest_addr,
-                                   record->record.target_data_op.dest_device_num,
-                                   record->record.target_data_op.bytes,
-                                   record->record.target_data_op.end_time,
-                                   record->record.target_data_op.codeptr_ra );
+                                   data_op.host_op_id,
+                                   data_op2string( data_op.optype ).c_str(),
+                                   data_op.src_addr,
+                                   data_op.src_device_num,
+                                   data_op.dest_addr,
+                                   data_op.dest_device_num,
+                                   data_op.bytes,
+                                   data_op.end_time,
+                                   data_op.codeptr_ra );
                     break;
+                }
+                #if HAVE( OMPT_CALLBACK_TARGET_MAP )
                 case ompt_callback_target_map:
+                #endif
                 #if HAVE( OMPT_CALLBACK_TARGET_MAP_EMI )
                 case ompt_callback_target_map_emi:
                 #endif
+                {
+                    #if HAVE( OMPT_RECORD_TARGET_MAP_EMI )
+                    ompt_record_target_map_emi_t map = record->record.target_map_emi;
+                    #elif HAVE( OMPT_RECORD_TARGET_MAP )
+                    ompt_record_target_map_t map = record->record.target_map;
+                    #endif
                     atomic_printf( "[%s] time = %lu | thread_id = %lu | target_id = %lu | target_id = %lu | "
                                    "nitems = %u | codeptr_ra = %p\n",
                                    __FUNCTION__,
                                    record->time,
                                    record->thread_id,
                                    record->target_id,
-                                   record->record.target_map.target_id,
-                                   record->record.target_map.nitems,
-                                   record->record.target_map.codeptr_ra );
-                    for ( unsigned int i = 0; i < record->record.target_map.nitems; ++i )
+                                   map.target_id,
+                                   map.nitems,
+                                   map.codeptr_ra );
+                    for ( unsigned int i = 0; i < map.nitems; ++i )
                     {
-                        atomic_printf( "[%s] host_addr[%d] = %p | device_addr[%d] = %p | bytes[%d] = %lu | mapping_flags[%d] = %s\n",
-                                       __FUNCTION__,
-                                       i,
-                                       record->record.target_map.host_addr[ i ],
-                                       i,
-                                       record->record.target_map.device_addr[ i ],
-                                       i,
-                                       record->record.target_map.bytes[ i ],
-                                       i,
-                                       map_flag2string( record->record.target_map.mapping_flags[ i ] ).c_str() );
+                        atomic_printf(
+                            "[%s] host_addr[%d] = %p | device_addr[%d] = %p | bytes[%d] = %lu | mapping_flags[%d] = %s\n",
+                            __FUNCTION__,
+                            i,
+                            map.host_addr[ i ],
+                            i,
+                            map.device_addr[ i ],
+                            i,
+                            map.bytes[ i ],
+                            i,
+                            map_flag2string( record->record.target_map.mapping_flags[ i ] ).c_str() );
                     }
                     break;
+                }
+                #if HAVE( OMPT_CALLBACK_TARGET_SUBMIT )
                 case ompt_callback_target_submit:
+                #endif
                 #if HAVE( OMPT_CALLBACK_TARGET_SUBMIT_EMI )
                 case ompt_callback_target_submit_emi:
                 #endif
+                {
+                    #if HAVE( OMPT_RECORD_TARGET_SUBMIT_EMI )
+                    ompt_record_target_submit_emi_t kernel = record->record.target_submit_emi;
+                    #elif HAVE( OMPT_RECORD_TARGET_KERNEL )
+                    ompt_record_target_kernel_t kernel = record->record.target_kernel;
+                    #endif
                     atomic_printf( "[%s] time = %lu | thread_id = %lu | target_id = %lu | host_op_id = %lu | "
                                    "requested_num_teams = %u | granted_num_teams = %u | end_time = %lu\n",
                                    __FUNCTION__,
                                    record->time,
                                    record->thread_id,
                                    record->target_id,
-                                   record->record.target_kernel.host_op_id,
-                                   record->record.target_kernel.requested_num_teams,
-                                   record->record.target_kernel.granted_num_teams,
-                                   record->record.target_kernel.end_time );
+                                   kernel.host_op_id,
+                                   kernel.requested_num_teams,
+                                   kernel.granted_num_teams,
+                                   kernel.end_time );
                     break;
+                }
                 default:
                     assert( false && "Unexpected ompt_record_ompt_t type" );
             }
@@ -1543,6 +1674,9 @@ callback_buffer_complete( int                  device_num,
 
     if ( buffer_owned )
     {
+        #if HAVE( OMPT_GET_BUFFER_LIMITS )
+        devices[ device_num ]->allocated_buffers--;
+        #endif
         delete[] ( ompt_record_ompt_t* )buffer;
     }
 }
@@ -1608,6 +1742,10 @@ callback_device_initialize( int                    device_num,
         /* Optional functions */
         new_device->device_functions.stop_trace  = ( ompt_stop_trace_t )lookup( "ompt_stop_trace" );
         new_device->device_functions.pause_trace = ( ompt_pause_trace_t )lookup( "ompt_pause_trace" );
+        #if HAVE( OMPT_GET_BUFFER_LIMITS )
+        new_device->device_functions.get_buffer_limits = ( ompt_get_buffer_limits_t )lookup( "ompt_get_buffer_limits" );
+        new_device->device_functions.get_buffer_limits( new_device->address, &new_device->recommended_buffer_amount, &new_device->recommended_buffer_size );
+        #endif
 
         /* Register buffer events */
         ompt_set_result_t result;
