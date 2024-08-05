@@ -1451,7 +1451,9 @@ callback_buffer_complete( int                  device_num,
             switch ( record->type )
             {
                 case ompt_callback_target:
+                #if HAVE( OMPT_CALLBACK_TARGET_EMI )
                 case ompt_callback_target_emi:
+                #endif
                     atomic_printf( "[%s] time = %lu | thread_id = %lu | target_id = %lu | kind = %s | "
                                    "endpoint = %s | device_num = %d | task_id = %lu | target_id = %lu | codeptr_ra = %p\n",
                                    __FUNCTION__,
@@ -1466,7 +1468,9 @@ callback_buffer_complete( int                  device_num,
                                    record->record.target.codeptr_ra );
                     break;
                 case ompt_callback_target_data_op:
+                #if HAVE( OMPT_CALLBACK_TARGET_DATA_OP_EMI )
                 case ompt_callback_target_data_op_emi:
+                #endif
                     atomic_printf( "[%s] time = %lu | thread_id = %lu | target_id = %lu | host_op_id = %lu | "
                                    "optype = %s | src_addr = %p | src_device_num = %d | dest_addr = %p | "
                                    "dest_device_num = %d | bytes = %lu | end_time = %lu | codeptr_ra = %p\n",
@@ -1485,7 +1489,9 @@ callback_buffer_complete( int                  device_num,
                                    record->record.target_data_op.codeptr_ra );
                     break;
                 case ompt_callback_target_map:
+                #if HAVE( OMPT_CALLBACK_TARGET_MAP_EMI )
                 case ompt_callback_target_map_emi:
+                #endif
                     atomic_printf( "[%s] time = %lu | thread_id = %lu | target_id = %lu | target_id = %lu | "
                                    "nitems = %u | codeptr_ra = %p\n",
                                    __FUNCTION__,
@@ -1510,7 +1516,9 @@ callback_buffer_complete( int                  device_num,
                     }
                     break;
                 case ompt_callback_target_submit:
+                #if HAVE( OMPT_CALLBACK_TARGET_SUBMIT_EMI )
                 case ompt_callback_target_submit_emi:
+                #endif
                     atomic_printf( "[%s] time = %lu | thread_id = %lu | target_id = %lu | host_op_id = %lu | "
                                    "requested_num_teams = %u | granted_num_teams = %u | end_time = %lu\n",
                                    __FUNCTION__,
@@ -1603,6 +1611,7 @@ callback_device_initialize( int                    device_num,
 
         /* Register buffer events */
         ompt_set_result_t result;
+        #if HAVE( OMPT_CALLBACK_TARGET_EMI )
         result = new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target_emi );
         if constexpr ( mode > printf_mode::disable_output )
         {
@@ -1614,6 +1623,20 @@ callback_device_initialize( int                    device_num,
                                set_result2string( result ).c_str() );
             }
         }
+        #else
+        result = new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target );
+        if constexpr ( mode > printf_mode::disable_output )
+        {
+            if ( result != ompt_set_error )
+            {
+                atomic_printf( "[%s] device_num = %d | ompt_callback_target = %s\n",
+                               __FUNCTION__,
+                               device_num,
+                               set_result2string( result ).c_str() );
+            }
+        }
+        #endif
+        #if HAVE( OMPT_CALLBACK_TARGET_DATA_OP_EMI )
         new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target_data_op_emi );
         if constexpr ( mode > printf_mode::disable_output )
         {
@@ -1625,6 +1648,20 @@ callback_device_initialize( int                    device_num,
                                set_result2string( result ).c_str() );
             }
         }
+        #else
+        new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target_data_op );
+        if constexpr ( mode > printf_mode::disable_output )
+        {
+            if ( result != ompt_set_error )
+            {
+                atomic_printf( "[%s] device_num = %d | ompt_callback_target_data_op = %s\n",
+                               __FUNCTION__,
+                               device_num,
+                               set_result2string( result ).c_str() );
+            }
+        }
+        #endif
+        #if HAVE( OMPT_CALLBACK_TARGET_MAP_EMI )
         new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target_map_emi );
         if constexpr ( mode > printf_mode::disable_output )
         {
@@ -1636,6 +1673,20 @@ callback_device_initialize( int                    device_num,
                                set_result2string( result ).c_str() );
             }
         }
+        #else
+        new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target_map );
+        if constexpr ( mode > printf_mode::disable_output )
+        {
+            if ( result != ompt_set_error )
+            {
+                atomic_printf( "[%s] device_num = %d | ompt_callback_target_map = %s\n",
+                               __FUNCTION__,
+                               device_num,
+                               set_result2string( result ).c_str() );
+            }
+        }
+        #endif
+        #if HAVE( OMPT_CALLBACK_TARGET_SUBMIT_EMI )
         new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target_submit_emi );
         if constexpr ( mode > printf_mode::disable_output )
         {
@@ -1647,6 +1698,19 @@ callback_device_initialize( int                    device_num,
                                set_result2string( result ).c_str() );
             }
         }
+        #else
+        new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target_submit );
+        if constexpr ( mode > printf_mode::disable_output )
+        {
+            if ( result != ompt_set_error )
+            {
+                atomic_printf( "[%s] device_num = %d | ompt_callback_target_submit = %s\n",
+                               __FUNCTION__,
+                               device_num,
+                               set_result2string( result ).c_str() );
+            }
+        }
+        #endif
 
         if ( !new_device->device_functions.start_trace( new_device->address, &callback_buffer_request<mode>, &callback_buffer_complete<mode> ) )
         {
@@ -1739,6 +1803,44 @@ callback_device_unload( int      device_num,
 
 template<printf_mode mode>
 void
+callback_target_map( ompt_id_t     target_id,
+                     unsigned int  nitems,
+                     void**        host_addr,
+                     void**        device_addr,
+                     size_t*       bytes,
+                     unsigned int* mapping_flags,
+                     const void*   codeptr_ra )
+{
+    if constexpr ( mode == printf_mode::callback )
+    {
+        print_function_name( __FUNCTION__ );
+    }
+    else if constexpr ( mode == printf_mode::callback_include_args )
+    {
+        atomic_printf( "[%s] target_id = %lu | nitems = %u | codeptr_ra = %p\n",
+                       __FUNCTION__,
+                       target_id,
+                       nitems,
+                       codeptr_ra );
+        for ( unsigned int i = 0; i < nitems; ++i )
+        {
+            atomic_printf( "[%s] host_addr[%u] = %p | device_addr[%u] = %p | "
+                           "bytes[%u] = %lu | mapping_flags[%u] = %u\n",
+                           __FUNCTION__,
+                           i,
+                           host_addr[ i ],
+                           i,
+                           device_addr[ i ],
+                           i,
+                           bytes[ i ],
+                           i,
+                           map_flag2string( mapping_flags[ i ] ).c_str() );
+        }
+    }
+}
+
+template<printf_mode mode>
+void
 callback_target_map_emi( ompt_data_t*  target_data,
                          unsigned int  nitems,
                          void**        host_addr,
@@ -1778,6 +1880,34 @@ callback_target_map_emi( ompt_data_t*  target_data,
 
 template<printf_mode mode>
 void
+callback_target( ompt_target_t         kind,
+                 ompt_scope_endpoint_t endpoint,
+                 int                   device_num,
+                 ompt_data_t*          task_data,
+                 ompt_id_t             target_id,
+                 const void*           codeptr_ra )
+{
+    if constexpr ( mode == printf_mode::callback )
+    {
+        print_function_name( __FUNCTION__ );
+    }
+    else if constexpr ( mode == printf_mode::callback_include_args )
+    {
+        atomic_printf( "[%s] kind = %s | endpoint = %s | device_num = %d | task_data->value = %lu (%p) | "
+                       "target_id = %lu | codeptr_ra = %p\n",
+                       __FUNCTION__,
+                       target2string( kind ).c_str(),
+                       endpoint2string( endpoint ).c_str(),
+                       device_num,
+                       task_data ? task_data->value : unknown_task_id,
+                       task_data,
+                       target_id,
+                       codeptr_ra );
+    }
+}
+
+template<printf_mode mode>
+void
 callback_target_emi( ompt_target_t         kind,
                      ompt_scope_endpoint_t endpoint,
                      int                   device_num,
@@ -1812,6 +1942,39 @@ callback_target_emi( ompt_target_t         kind,
                        target_task_data,
                        target_data ? target_data->value : unknown_target_id,
                        target_data,
+                       codeptr_ra );
+    }
+}
+
+template<printf_mode mode>
+void
+callback_target_data_op( ompt_id_t             target_id,
+                         ompt_id_t             host_op_id,
+                         ompt_target_data_op_t optype,
+                         void*                 src_addr,
+                         int                   src_device_num,
+                         void*                 dest_addr,
+                         int                   dest_device_num,
+                         size_t                bytes,
+                         const void*           codeptr_ra )
+{
+    if constexpr ( mode == printf_mode::callback )
+    {
+        print_function_name( __FUNCTION__ );
+    }
+    else if constexpr ( mode == printf_mode::callback_include_args )
+    {
+        atomic_printf( "[%s] target_id = %lu | host_op_id = %lu | optype = %s | src_addr = %p | "
+                       "src_device_num = %d | dest_addr = %p | dest_device_num = %d | bytes = %lu | codeptr_ra = %p\n",
+                       __FUNCTION__,
+                       target_id,
+                       host_op_id,
+                       data_op2string( optype ).c_str(),
+                       src_addr,
+                       src_device_num,
+                       dest_addr,
+                       dest_device_num,
+                       bytes,
                        codeptr_ra );
     }
 }
@@ -1862,6 +2025,26 @@ callback_target_data_op_emi( ompt_scope_endpoint_t endpoint,
                        dest_device_num,
                        bytes,
                        codeptr_ra );
+    }
+}
+
+template<printf_mode mode>
+void
+callback_target_submit( ompt_id_t    target_id,
+                        ompt_id_t    host_op_id,
+                        unsigned int requested_num_teams )
+{
+    if constexpr ( mode == printf_mode::callback )
+    {
+        print_function_name( __FUNCTION__ );
+    }
+    else if constexpr ( mode == printf_mode::callback_include_args )
+    {
+        atomic_printf( "[%s] target_id = %lu | host_op_id = %lu | requested_num_teams = %u\n",
+                       __FUNCTION__,
+                       target_id,
+                       host_op_id,
+                       requested_num_teams );
     }
 }
 
@@ -1977,15 +2160,23 @@ tool_initialize( ompt_function_lookup_t lookup,
         CALLBACK( device_unload ),
         #if HAVE( OMPT_CALLBACK_TARGET_EMI )
         CALLBACK( target_emi ),
+        #else
+        CALLBACK( target ),
         #endif
         #if HAVE( OMPT_CALLBACK_TARGET_MAP_EMI )
         CALLBACK( target_map_emi ),
+        #else
+        CALLBACK( target_map ),
         #endif
         #if HAVE( OMPT_CALLBACK_TARGET_DATA_OP_EMI )
         CALLBACK( target_data_op_emi ),
+        #else
+        CALLBACK( target_data_op ),
         #endif
         #if HAVE( OMPT_CALLBACK_TARGET_SUBMIT_EMI )
         CALLBACK( target_submit_emi )
+        #else
+        CALLBACK( target_submit )
         #endif
     };
 
