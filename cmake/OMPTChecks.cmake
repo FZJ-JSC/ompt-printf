@@ -91,8 +91,45 @@ function( OMPT_HEADER_CHECK )
         check_type_size( ompt_target_map_flag_close OMPT_TARGET_MAP_FLAG_CLOSE LANGUAGE C )
         check_type_size( ompt_target_map_flag_shared OMPT_TARGET_MAP_FLAG_SHARED LANGUAGE C )
 
-        # OpenMP 6.0 checks
-        # TR13 needs to be released first
+        # OpenMP TR13 checks
+        # Changed kernel records for device tracing. Renamed non-emi fields to _emi. Old fields are deprecated.
+        # Replaced ompt_record_target_kernel_t with ompt_record_target_submit_emi_t. Old name is deprecated.
+        check_type_size( ompt_record_target_emi_t OMPT_RECORD_TARGET_EMI LANGUAGE C )
+        check_type_size( ompt_record_target_data_op_emi_t OMPT_RECORD_TARGET_DATA_OP_EMI LANGUAGE C )
+        check_type_size( ompt_record_target_map_emi_t OMPT_RECORD_TARGET_MAP_EMI LANGUAGE C )
+        check_type_size( ompt_record_target_submit_emi_t OMPT_RECORD_TARGET_SUBMIT_EMI LANGUAGE C )
+        # New struct for data transfers
+        check_type_size( ompt_subvolume_t OMPT_SUBVOLUME LANGUAGE C )
+        # New enum values
+        check_type_size( ompt_dependence_type_out_all_memory OMPT_DEPENDENCE_TYPE_OUT_ALL_MEMORY LANGUAGE C )
+        check_type_size( ompt_dependence_type_inout_all_memory OMPT_DEPENDENCE_TYPE_INOUT_ALL_MEMORY LANGUAGE C )
+        check_type_size( ompt_target_data_transfer OMPT_TARGET_DATA_TRANSFER LANGUAGE C )
+        check_type_size( ompt_target_data_memset OMPT_TARGET_DATA_MEMSET LANGUAGE C )
+        check_type_size( ompt_target_data_transer_rect OMPT_TARGET_DATA_TRANSFER_RECT LANGUAGE C )
+        check_type_size( ompt_target_data_transfer_async OMPT_TARGET_DATA_TRANSFER_ASYNC LANGUAGE C )
+        check_type_size( ompt_target_data_memset_async OMPT_TARGET_DATA_MEMSET_ASYNC LANGUAGE C )
+        check_type_size( ompt_target_data_transfer_rect_async OMPT_TARGET_DATA_TRANSFER_RECT_ASYNC LANGUAGE C )
+        checK_type_size( ompt_task_importing OMPT_TASK_IMPORTING LANGUAGE C )
+        check_type_size( ompt_task_exporting OMPT_TASK_EXPORTING LANGUAGE C )
+        check_type_size( ompt_work_workdistribute OMPT_WORK_WORKDISTRIBUTE LANGUAGE C )
+        # New device lookup
+        check_type_size( ompt_get_buffer_limits_t OMPT_GET_BUFFER_LIMITS LANGUAGE C )
+        # Removed enum values
+        check_type_size( ompt_sync_region_barrier OMPT_SYNC_REGION_BARRIER LANGUAGE C )
+        check_type_size( ompt_sync_region_barrier_implicit OMPT_SYNC_REGION_BARRIER_IMPLICIT LANGUAGE C )
+        # Check deprecated values, as runtimes might not implement them anymore
+        check_type_size( ompt_callback_target OMPT_CALLBACK_TARGET LANGUAGE C )
+        check_type_size( ompt_callback_target_data_op OMPT_CALLBACK_TARGET_DATA_OP LANGUAGE C )
+        check_type_size( ompt_callback_target_submit OMPT_CALLBACK_TARGET_SUBMIT LANGUAGE C )
+        check_type_size( ompt_callback_target_map OMPT_CALLBACK_TARGET_MAP LANGUAGE C )
+        check_type_size( ompt_target_data_transfer_to_device OMPT_TARGET_DATA_TRANSFER_TO_DEVICE LANGUAGE C )
+        check_type_size( ompt_target_data_transfer_from_device OMPT_TARGET_DATA_TRANSFER_FROM_DEVICE LANGUAGE C )
+        check_type_size( ompt_target_data_transfer_to_device_async OMPT_TARGET_DATA_TRANSFER_TO_DEVICE_ASYNC LANGUAGE C )
+        check_type_size( ompt_target_data_transfer_from_device_async OMPT_TARGET_DATA_TRANSFER_FROM_DEVICE_ASYNC LANGUAGE C )
+        check_type_size( ompt_record_target_t OMPT_RECORD_TARGET LANGUAGE C )
+        check_type_size( ompt_record_target_data_op_t OMPT_RECORD_TARGET_DATA_OP LANGUAGE C )
+        check_type_size( ompt_record_target_map_t OMPT_RECORD_TARGET_MAP LANGUAGE C )
+        check_type_size( ompt_record_target_kernel_t OMPT_RECORD_TARGET_KERNEL LANGUAGE C )
         set( CMAKE_EXTRA_INCLUDE_FILES )
     endif()
 
