@@ -1,0 +1,362 @@
+#
+# Copyright (c) 2024,
+# Forschungszentrum Juelich GmbH, Germany
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above
+#    copyright notice, this list of conditions and the following
+#    disclaimer in the documentation and/or other materials provided
+#    with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its
+#    contributors may be used to endorse or promote products derived
+#    from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+# INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+# STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+# OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+
+stages:
+  - build
+
+.build-script:
+  stage: build
+  tags: 
+    - docker
+    - public-docker
+  script:
+    - cd $CI_PROJECT_DIR
+    - cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCOMPILER_TOOLCHAIN=$COMPILER_TOOLCHAIN
+    - cmake --build build --config Release
+    # - ctest --test-dir build --output-on-failure
+
+# Ubuntu 24.04
+build:ubuntu-24.04-clang:
+  image: ubuntu:24.04
+  extends: .build-script
+  allow_failure: false
+  variables:
+    COMPILER_TOOLCHAIN: Clang
+  script:
+    - apt-get update && apt-get upgrade -y
+    - apt-get install -y clang libomp-dev cmake
+    - !reference [.build-script, script]
+
+# Ubuntu 22.04
+build:ubuntu-22.04-clang:
+  image: ubuntu:22.04
+  extends: .build-script
+  allow_failure: false
+  variables:
+    COMPILER_TOOLCHAIN: Clang
+  script:
+    - apt-get update && apt-get upgrade -y
+    - apt-get install -y clang libomp-dev cmake
+    - !reference [.build-script, script]
+
+# Ubuntu 20.04
+build:ubuntu-20.04-clang:
+  image: ubuntu:20.04
+  extends: .build-script
+  allow_failure: false
+  variables:
+    COMPILER_TOOLCHAIN: Clang
+  script:
+    - apt-get update && apt-get upgrade -y
+    - apt-get install -y clang libomp-dev cmake
+    - !reference [.build-script, script]
+
+# Debian Sid
+build:debian-sid-clang:
+  image: debian:sid
+  extends: .build-script
+  allow_failure: false
+  variables:
+      COMPILER_TOOLCHAIN: Clang
+  script:
+      - apt-get update && apt-get upgrade -y
+      - apt-get install -y clang libomp-dev cmake build-essential
+      - !reference [.build-script, script]
+
+# Debian 12
+build:debian-12-clang:
+  image: debian:12
+  extends: .build-script
+  allow_failure: false
+  variables:
+    COMPILER_TOOLCHAIN: Clang
+  script:
+    - apt-get update && apt-get upgrade -y
+    - apt-get install -y clang libomp-dev cmake build-essential
+    - !reference [.build-script, script]
+
+# Debian 11
+build:debian-11-clang:
+  image: debian:11
+  extends: .build-script
+  allow_failure: false
+  variables:
+    COMPILER_TOOLCHAIN: Clang
+  script:
+    - apt-get update && apt-get upgrade -y
+    - apt-get install -y clang libomp-dev cmake build-essential
+    - !reference [.build-script, script]
+
+# Alma Linux 8
+build:almalinux-8-clang:
+  image: almalinux:8
+  extends: .build-script
+  allow_failure: false
+  variables:
+    COMPILER_TOOLCHAIN: Clang
+  script:
+    - dnf update -y
+    - dnf install -y clang cmake
+    - !reference [.build-script, script]
+
+# Alma Linux 9
+build:almalinux-9-clang:
+  image: almalinux:9
+  extends: .build-script
+  allow_failure: false
+  variables:
+    COMPILER_TOOLCHAIN: Clang
+  script:
+    - dnf update -y
+    - dnf install -y clang cmake
+    - !reference [.build-script, script]
+
+# Rocky Linux 8
+build:rockylinux-8-clang:
+  image: rockylinux:8
+  extends: .build-script
+  allow_failure: false
+  variables:
+    COMPILER_TOOLCHAIN: Clang
+  script:
+    - dnf update -y
+    - dnf install -y clang cmake
+    - !reference [.build-script, script]
+
+# Rocky Linux 9
+build:rockylinux-9-clang:
+  image: rockylinux:9
+  extends: .build-script
+  allow_failure: false
+  variables:
+    COMPILER_TOOLCHAIN: Clang
+  script:
+    - dnf update -y
+    - dnf install -y clang cmake
+    - !reference [.build-script, script]
+
+# Fedora 40
+build:fedora-40-clang:
+  image: fedora:40
+  extends: .build-script
+  allow_failure: false
+  variables:
+    COMPILER_TOOLCHAIN: Clang
+  script:
+    - dnf update -y
+    - dnf install -y clang cmake
+    - !reference [.build-script, script]
+
+# Fedora 39
+build:fedora-39-clang:
+  image: fedora:39
+  extends: .build-script
+  allow_failure: false
+  variables:
+    COMPILER_TOOLCHAIN: Clang
+  script:
+    - dnf update -y
+    - dnf install -y clang cmake
+    - !reference [.build-script, script]
+
+# Fedora Rawhide
+build:fedora-rawhide-clang:
+  image: fedora:rawhide
+  extends: .build-script
+  allow_failure: false
+  variables:
+    COMPILER_TOOLCHAIN: Clang
+  script:
+    - dnf update -y
+    - dnf install -y clang cmake
+    - !reference [.build-script, script]
+
+# OpenSUSE Leap 15.6
+build:opensuse-leap-15.6-clang:
+  image: opensuse/leap:15.6
+  extends: .build-script
+  allow_failure: false
+  variables:
+    COMPILER_TOOLCHAIN: Clang
+  script:
+    - zypper update -y
+    - zypper install -y --type pattern devel_basis
+    - zypper install -y clang cmake libstdc++-devel libomp-devel
+    - !reference [.build-script, script]
+
+# Arch Linux
+build:archlinux-clang:
+  image: archlinux:latest
+  extends: .build-script
+  allow_failure: false
+  variables:
+    COMPILER_TOOLCHAIN: Clang
+  script:
+    - pacman -Syu --noconfirm
+    - pacman -S --noconfirm clang openmp llvm cmake make
+    - !reference [.build-script, script]
+
+# Intel oneAPI 2024.2.0
+build:intel-oneapi-2024.2.0:
+  image: intel/oneapi:2024.2.0-1-devel-ubuntu22.04
+  extends: .build-script
+  allow_failure: false
+  variables:
+    COMPILER_TOOLCHAIN: oneAPI
+  script:
+    - rm -f /etc/apt/sources.list.d/oneAPI.list /etc/apt/sources.list.d/intel-graphics.list
+    - apt-get update -y
+    - apt-get install -y cmake
+    - !reference [.build-script, script]
+
+# Intel oneAPI 2024.1.0
+build:intel-oneapi-2024.1.0:
+  image: intel/oneapi:2024.1.0-devel-ubuntu22.04
+  extends: .build-script
+  allow_failure: false
+  variables:
+    COMPILER_TOOLCHAIN: oneAPI
+  script:
+    - rm -f /etc/apt/sources.list.d/oneAPI.list /etc/apt/sources.list.d/intel-graphics.list
+    - apt-get update -y
+    - apt-get install -y cmake
+    - !reference [.build-script, script]
+
+# Intel oneAPI 2024.0.0
+build:intel-oneapi-2024.0.0:
+  image: intel/oneapi:2024.0.0-devel-ubuntu22.04
+  extends: .build-script
+  allow_failure: false
+  variables:
+    COMPILER_TOOLCHAIN: oneAPI
+  script:
+    - rm -f /etc/apt/sources.list.d/oneAPI.list /etc/apt/sources.list.d/intel-graphics.list
+    - apt-get update -y
+    - apt-get install -y cmake
+    - !reference [.build-script, script]
+
+# NVHPC 24.7
+build:nvhpc-24.7:
+  image: nvcr.io/nvidia/nvhpc:24.7-devel-cuda12.5-ubuntu24.04
+  extends: .build-script
+  allow_failure: false
+  variables:
+    COMPILER_TOOLCHAIN: NVHPC
+  script:
+    - apt-get update -y
+    - apt-get install -y cmake
+    - !reference [.build-script, script]
+
+# NVHPC 24.5
+build:nvhpc-24.5:
+  image: nvcr.io/nvidia/nvhpc:24.5-devel-cuda12.4-ubuntu22.04
+  extends: .build-script
+  allow_failure: false
+  variables:
+    COMPILER_TOOLCHAIN: NVHPC
+  script:
+    - apt-get update -y
+    - apt-get install -y cmake
+    - !reference [.build-script, script]
+
+# NVHPC 24.3
+build:nvhpc-24.3:
+  image: nvcr.io/nvidia/nvhpc:24.3-devel-cuda12.3-ubuntu22.04
+  extends: .build-script
+  allow_failure: false
+  variables:
+    COMPILER_TOOLCHAIN: NVHPC
+  script:
+    - apt-get update -y
+    - apt-get install -y cmake
+    - !reference [.build-script, script]
+
+# AMD ROCm 6.1.2
+build:rocm-6.1.2:
+  image: rocm/dev-ubuntu-22.04:6.1.2-complete
+  extends: .build-script
+  allow_failure: false
+  variables:
+    COMPILER_TOOLCHAIN: AMDClang
+  script:
+    - apt-get update -y
+    - apt-get install -y cmake
+    - export PATH=/opt/rocm/bin:$PATH
+    - !reference [.build-script, script]
+
+# AMD ROCm 6.0.2
+build:rocm-6.0.2:
+  image: rocm/dev-ubuntu-22.04:6.0.2-complete
+  extends: .build-script
+  allow_failure: false
+  variables:
+    COMPILER_TOOLCHAIN: AMDClang
+  script:
+    - apt-get update -y
+    - apt-get install -y cmake
+    - export PATH=/opt/rocm/bin:$PATH
+    - !reference [.build-script, script]
+
+# AMD ROCm 5.7.1
+build:rocm-5.7.1:
+  image: rocm/dev-ubuntu-22.04:5.7.1-complete
+  extends: .build-script
+  allow_failure: false
+  variables:
+    COMPILER_TOOLCHAIN: AMDClang
+  script:
+    - apt-get update -y
+    - apt-get install -y cmake
+    - export PATH=/opt/rocm/bin:$PATH
+    - !reference [.build-script, script]
+
+# LLVM Trunk
+build:llvm-trunk:
+  image: ubuntu:24.04
+  extends: .build-script
+  allow_failure: false
+  variables:
+    COMPILER_TOOLCHAIN: Clang
+    LLVM_DEVELOPMENT_VERSION: 20
+  script:
+    - apt-get update
+    - apt-get install -y wget gnupg
+    - echo "deb http://apt.llvm.org/noble/ llvm-toolchain-noble main" >> /etc/apt/sources.list
+    - echo "deb-src http://apt.llvm.org/noble/ llvm-toolchain-noble main" >> /etc/apt/sources.list
+    - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
+    - apt-get update && apt-get upgrade -y
+    - apt-get install -y clang-${LLVM_DEVELOPMENT_VERSION} libomp-${LLVM_DEVELOPMENT_VERSION}-dev cmake
+    - ln -s /usr/bin/clang-${LLVM_DEVELOPMENT_VERSION} /usr/bin/clang
+    - ln -s /usr/bin/clang++-${LLVM_DEVELOPMENT_VERSION} /usr/bin/clang++
+    - !reference [.build-script, script]
