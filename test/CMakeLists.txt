@@ -32,31 +32,21 @@
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-cmake_minimum_required( VERSION 3.10 )
+function( add_executable_with_test NAME )
+    cmake_parse_arguments( ARG "" "LANGUAGE" "SOURCES;RUNTIME_ARGUMENTS" ${ARGN} )
+    add_executable( ${NAME} )
+    target_compile_options( ${NAME} PUBLIC ${OMPT_C_FLAGS} ${OMPT_CXX_FLAGS} )
+    target_link_options( ${NAME} PUBLIC ${OMPT_LINK_FLAGS} )
+    target_link_libraries( ${NAME} PUBLIC m )
+    target_sources( ${NAME} PRIVATE ${ARG_SOURCES} )
 
-include( cmake/DefineCompilerToolchain.cmake )
-project( ompt-printf LANGUAGES C CXX )
+    add_test( NAME ${NAME} COMMAND "${CMAKE_SOURCE_DIR}/test/test_driver.sh"
+              $<TARGET_FILE:${NAME}> ${ARG_RUNTIME_ARGUMENTS} )
+    set_property( TEST ${NAME} PROPERTY ENVIRONMENT "OMP_TOOL=enabled"
+                  "OMP_TOOL_LIBRARIES=$<TARGET_FILE:ompt-printf>" )
+    set_tests_properties( ${NAME} PROPERTIES SKIP_RETURN_CODE 127 )
+endfunction()
 
-set( CMAKE_VERBOSE_MAKEFILE ON CACHE BOOL "Verbose makefile" )
-if( CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0" )
-    set( CMAKE_COMPILE_WARNING_AS_ERROR ON CACHE BOOL "Compile warnings as errors" )
-endif()
-
-include( cmake/OMPTChecks.cmake )
-OMPT_HEADER_CHECK()
-if( NOT HAVE_OMP_TOOLS_HEADER )
-    message( FATAL_ERROR "omp-tools.h not found, but required for project" )
-endif()
-OMPT_ADDITIONAL_CFLAGS()
-message( "OMPT_C_FLAGS = ${OMPT_C_FLAGS}, OMPT_CXX_FLAGS = ${OMPT_CXX_FLAGS}, required to build interface" )
-OMPT_ADDITIONAL_LDFLAGS()
-message( "OMPT_LINK_FLAGS = ${OMPT_LINK_FLAGS} required to build interface" )
-
-
-add_subdirectory( src )
-
-option( OMPT_PRINTF_BUILD_TESTING "Build tests" ON )
-if( OMPT_PRINTF_BUILD_TESTING )
-    enable_testing()
-    add_subdirectory( test )
-endif()
+add_executable_with_test( test_parallel LANGUAGE C SOURCES test_parallel.c )
+add_executable_with_test( test_task LANGUAGE C SOURCES test_task.c )
+add_executable_with_test( test_sections LANGUAGE C SOURCES test_sections.c )

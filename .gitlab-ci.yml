@@ -44,7 +44,7 @@ stages:
     - cd $CI_PROJECT_DIR
     - cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCOMPILER_TOOLCHAIN=$COMPILER_TOOLCHAIN
     - cmake --build build --config Release
-    # - ctest --test-dir build --output-on-failure
+    - ctest --test-dir build --output-on-failure
 
 # Ubuntu 24.04
 build:ubuntu-24.04-clang:

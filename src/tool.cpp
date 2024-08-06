@@ -2227,6 +2227,9 @@ ompt_start_tool( unsigned int omp_version,
     {
         chosen_printf_mode = static_cast<printf_mode>( env_printf_mode_int );
     }
+    atomic_printf( "[%s] Chosen printf mode: %d\n",
+                   __FUNCTION__,
+                   chosen_printf_mode );
 
     static ompt_start_tool_result_t tool;
     switch ( chosen_printf_mode )
