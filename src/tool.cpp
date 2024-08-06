@@ -92,7 +92,7 @@ typedef struct device_functions_t
     ompt_stop_trace_t            stop_trace;
     ompt_pause_trace_t           pause_trace;
     #if HAVE( OMPT_GET_BUFFER_LIMITS )
-    ompt_get_buffer_limits_t     get_buffer_limits;
+    ompt_get_buffer_limits_t     get_buffer_limits; // ADDED_60
     #endif
 } device_functions_t;
 
@@ -235,9 +235,9 @@ parallel_flag2string( uint32_t flags )
  *   ompt_task_implicit   = 0x00000002,
  *   ompt_task_explicit   = 0x00000004,
  *   ompt_task_target     = 0x00000008,
- *   ompt_task_taskwait   = 0x00000010,
- *   ompt_task_importing  = 0x02000000,
- *   ompt_task_exporting  = 0x04000000,
+ *   ompt_task_taskwait   = 0x00000010, ADDED_51
+ *   ompt_task_importing  = 0x02000000, ADDED_60
+ *   ompt_task_exporting  = 0x04000000, ADDED_60
  *   ompt_task_undeferred = 0x08000000,
  *   ompt_task_untied     = 0x10000000,
  *   ompt_task_final      = 0x20000000,
@@ -322,7 +322,7 @@ task_flag2string( uint32_t flags )
 /* typedef enum ompt_scope_endpoint_t {
  *   ompt_scope_begin    = 1,
  *   ompt_scope_end      = 2,
- *   ompt_scope_beginend = 3
+ *   ompt_scope_beginend = 3, ADDED_51
  * } ompt_scope_endpoint_t; */
 static inline std::string
 endpoint2string( ompt_scope_endpoint_t t )
@@ -351,7 +351,7 @@ endpoint2string( ompt_scope_endpoint_t t )
  *   ompt_task_early_fulfill = 5,
  *   ompt_task_late_fulfill  = 6,
  *   ompt_task_switch        = 7,
- *   ompt_taskwait_complete  = 8
+ *   ompt_taskwait_complete  = 8, ADDED_51
  * } ompt_task_status_t; */
 static inline std::string
 task_status2string( ompt_task_status_t t )
@@ -419,9 +419,9 @@ mutex2string( ompt_mutex_t t )
 /* typedef enum ompt_dispatch_t {
  *   ompt_dispatch_iteration        = 1,
  *   ompt_dispatch_section          = 2,
- *   ompt_dispatch_ws_loop_chunk    = 3,
- *   ompt_dispatch_taskloop_chunk   = 4,
- *   ompt_dispatch_distribute_chunk = 5
+ *   ompt_dispatch_ws_loop_chunk    = 3, ADDED_52
+ *   ompt_dispatch_taskloop_chunk   = 4, ADDED_52
+ *   ompt_dispatch_distribute_chunk = 5, ADDED_52
  * } ompt_dispatch_t; */
 static inline std::string
 dispatch2string( ompt_dispatch_t t )
@@ -511,12 +511,12 @@ cancel2string( int t )
  *     ompt_work_workshare       = 5,
  *     ompt_work_distribute      = 6,
  *     ompt_work_taskloop        = 7,
- *     ompt_work_scope           = 8,
- *     ompt_work_workdistribute  = 9,
- *     ompt_work_loop_static     = 10,
- *     ompt_work_loop_dynamic    = 11,
- *     ompt_work_loop_guided     = 12,
- *     ompt_work_loop_other      = 13
+ *     ompt_work_scope           = 8, ADDED_51
+ *     ompt_work_workdistribute  = 9, ADDED_60
+ *     ompt_work_loop_static     = 10, ADDED_52
+ *     ompt_work_loop_dynamic    = 11, ADDED_52
+ *     ompt_work_loop_guided     = 12, ADDED_52
+ *     ompt_work_loop_other      = 13, ADDED_52
  * } ompt_work_t; */
 static inline std::string
 work2string( ompt_work_t t )
@@ -568,16 +568,16 @@ work2string( ompt_work_t t )
 }
 
 /* typedef enum ompt_sync_region_t {
- *     ompt_sync_region_barrier                    DEPRECATED_51 = 1,
- *     ompt_sync_region_barrier_implicit           DEPRECATED_51 = 2,
+ *     ompt_sync_region_barrier                    = 1, DEPRECATED_51, REMOVED_60
+ *     ompt_sync_region_barrier_implicit           = 2, DEPRECATED_51, REMOVED_60
  *     ompt_sync_region_barrier_explicit           = 3,
  *     ompt_sync_region_barrier_implementation     = 4,
  *     ompt_sync_region_taskwait                   = 5,
  *     ompt_sync_region_taskgroup                  = 6,
  *     ompt_sync_region_reduction                  = 7,
- *     ompt_sync_region_barrier_implicit_workshare = 8,
- *     ompt_sync_region_barrier_implicit_parallel  = 9,
- *     ompt_sync_region_barrier_teams              = 10
+ *     ompt_sync_region_barrier_implicit_workshare = 8, ADDED_51
+ *     ompt_sync_region_barrier_implicit_parallel  = 9, ADDED_51
+ *     ompt_sync_region_barrier_teams              = 10 ADDED_51
  * } ompt_sync_region_t; */
 static inline std::string
 sync2string( ompt_sync_region_t t )
@@ -622,21 +622,21 @@ sync2string( ompt_sync_region_t t )
 
 /* typedef enum ompt_target_data_op_t {
  *     ompt_target_data_alloc                      = 1,
- *     ompt_target_data_transfer_to_device         = 2,
- *     ompt_target_data_transfer_from_device       = 3,
+ *     ompt_target_data_transfer_to_device         = 2, DEPRECATED_60
+ *     ompt_target_data_transfer_from_device       = 3, DEPRECATED_60
  *     ompt_target_data_delete                     = 4,
  *     ompt_target_data_associate                  = 5,
  *     ompt_target_data_disassociate               = 6,
- *     ompt_target_data_transfer                   = 7,
- *     ompt_target_data_memset                     = 8,
- *     ompt_target_data_transfer_rect              = 9,
- *     ompt_target_data_alloc_async                = 17,
- *     ompt_target_data_transfer_to_device_async   = 18,
- *     ompt_target_data_transfer_from_device_async = 19,
- *     ompt_target_data_delete_async               = 20,
- *     ompt_target_data_transfer_async             = 23,
- *     ompt_target_data_memset_async               = 24,
- *     ompt_target_data_transfer_rect_async        = 25
+ *     ompt_target_data_transfer                   = 7, ADDED_60
+ *     ompt_target_data_memset                     = 8, ADDED_60
+ *     ompt_target_data_transfer_rect              = 9, ADDED_60
+ *     ompt_target_data_alloc_async                = 17, ADDED_51
+ *     ompt_target_data_transfer_to_device_async   = 18, ADDED_51, DEPRECATED_60
+ *     ompt_target_data_transfer_from_device_async = 19, ADDED_51, DEPRECATED_60
+ *     ompt_target_data_delete_async               = 20, ADDED_51
+ *     ompt_target_data_transfer_async             = 23, ADDED_60
+ *     ompt_target_data_memset_async               = 24, ADDED_60
+ *     ompt_target_data_transfer_rect_async        = 25, ADDED_60
  * } ompt_target_data_op_t; */
 static inline std::string
 data_op2string( ompt_target_data_op_t t )
@@ -710,10 +710,10 @@ data_op2string( ompt_target_data_op_t t )
  *   ompt_target_enter_data              = 2,
  *   ompt_target_exit_data               = 3,
  *   ompt_target_update                  = 4,
- *   ompt_target_nowait                  = 9,
- *   ompt_target_enter_data_nowait       = 10,
- *   ompt_target_exit_data_nowait        = 11,
- *   ompt_target_update_nowait           = 12
+ *   ompt_target_nowait                  = 9, ADDED_51
+ *   ompt_target_enter_data_nowait       = 10, ADDED_51
+ *   ompt_target_exit_data_nowait        = 11, ADDED_51
+ *   ompt_target_update_nowait           = 12, ADDED_51
  * } ompt_target_t; */
 static inline std::string
 target2string( ompt_target_t t )
@@ -757,10 +757,10 @@ target2string( ompt_target_t t )
  *   ompt_target_map_flag_release  = 0x08,
  *   ompt_target_map_flag_delete   = 0x10,
  *   ompt_target_map_flag_implicit = 0x20,
- *   ompt_target_map_flag_always   = 0x40,
- *   ompt_target_map_flag_present  = 0x80,
- *   ompt_target_map_flag_close    = 0x100,
- *   ompt_target_map_flag_shared   = 0x200
+ *   ompt_target_map_flag_always   = 0x40, ADDED_52
+ *   ompt_target_map_flag_present  = 0x80, ADDED_52
+ *   ompt_target_map_flag_close    = 0x100, ADDED_52
+ *   ompt_target_map_flag_shared   = 0x200, ADDED_52
  * } ompt_target_map_flag_t; */
 static inline std::string
 map_flag2string( unsigned int t )
@@ -835,9 +835,9 @@ map_flag2string( unsigned int t )
  *   ompt_dependence_type_mutexinoutset    = 4,
  *   ompt_dependence_type_source           = 5,
  *   ompt_dependence_type_sink             = 6,
- *   ompt_dependence_type_inoutset         = 7,
- *   ompt_dependence_type_out_all_memory   = 34,
- *   ompt_dependence_type_inout_all_memory = 35
+ *   ompt_dependence_type_inoutset         = 7, ADDED_51
+ *   ompt_dependence_type_out_all_memory   = 34, ADDED_60
+ *   ompt_dependence_type_inout_all_memory = 35, ADDED_60
  * } ompt_dependence_type_t; */
 static inline std::string
 dependence_type2string( ompt_dependence_type_t t )
@@ -1451,6 +1451,74 @@ callback_dispatch( ompt_data_t*    parallel_data,
 }
 
 /* Host side accelerator callbacks */
+
+/* // REMOVED_60
+ * typedef struct ompt_record_ompt_t {
+ *   ompt_callbacks_t type;
+ *   ompt_device_time_t time;
+ *   ompt_id_t thread_id;
+ *   ompt_id_t target_id;
+ *   union {
+ *     ompt_record_thread_begin_t thread_begin;
+ *     ompt_record_parallel_begin_t parallel_begin;
+ *     ompt_record_parallel_end_t parallel_end;
+ *     ompt_record_work_t work;
+ *     ompt_record_dispatch_t dispatch;
+ *     ompt_record_task_create_t task_create;
+ *     ompt_record_dependences_t dependences;
+ *     ompt_record_task_dependence_t task_dependence;
+ *     ompt_record_task_schedule_t task_schedule;
+ *     ompt_record_implicit_task_t implicit_task;
+ *     ompt_record_masked_t masked;
+ *     ompt_record_sync_region_t sync_region;
+ *     ompt_record_mutex_acquire_t mutex_acquire;
+ *     ompt_record_mutex_t mutex;
+ *     ompt_record_nest_lock_t nest_lock;
+ *     ompt_record_flush_t flush;
+ *     ompt_record_cancel_t cancel;
+ *     ompt_record_target_t target;
+ *     ompt_record_target_data_op_t target_data_op;
+ *     ompt_record_target_map_t target_map;
+ *     ompt_record_target_kernel_t target_kernel;
+ *     ompt_record_control_tool_t control_tool;
+ *   } record;
+ * } ompt_record_ompt_t;
+ *
+ * // ADDED_60
+ * typedef union ompt_any_record_ompt_t {
+ *     ompt_record_thread_begin_t thread_begin;
+ *     ompt_record_parallel_begin_t parallel_begin;
+ *     ompt_record_parallel_end_t parallel_end;
+ *     ompt_record_work_t work;
+ *     ompt_record_dispatch_t dispatch;
+ *     ompt_record_task_create_t task_create;
+ *     ompt_record_dependences_t dependences;
+ *     ompt_record_task_dependence_t task_dependence;
+ *     ompt_record_task_schedule_t task_schedule;
+ *     ompt_record_implicit_task_t implicit_task;
+ *     ompt_record_masked_t masked;
+ *     ompt_record_sync_region_t sync_region;
+ *     ompt_record_mutex_acquire_t mutex_acquire;
+ *     ompt_record_mutex_t mutex;
+ *     ompt_record_nest_lock_t nest_lock;
+ *     ompt_record_flush_t flush;
+ *     ompt_record_cancel_t cancel;
+ *     ompt_record_target_emi_t target_emi;
+ *     ompt_record_target_data_op_emi_t target_data_op_emi;
+ *     ompt_record_target_map_emi_t target_map_emi;
+ *     ompt_record_target_submit_emi_t target_submit_emi;
+ *     ompt_record_control_tool_t control_tool;
+ *     ompt_record_error_t error;
+ * } ompt_any_record_ompt_t;
+ *
+ * typedef struct ompt_record_ompt_t {
+ *     ompt_callbacks_t type;
+ *     ompt_device_time_t time;
+ *     ompt_id_t thread_id;
+ *     ompt_id_t target_id;
+ *     ompt_any_record_ompt_t record;
+ * } ompt_record_ompt_t;
+ * */
 
 template<printf_mode mode>
 void
@@ -2124,10 +2192,10 @@ callback_target_data_op_emi( ompt_scope_endpoint_t endpoint,
                              ompt_data_t*          target_data,
                              ompt_id_t*            host_op_id,
                              ompt_target_data_op_t optype,
-                             void*                 src_addr,
-                             int                   src_device_num,
-                             void*                 dest_addr,
-                             int                   dest_device_num,
+                             void*                 src_addr,        // CHANGED_60: dev1_addr
+                             int                   src_device_num,  // CHANGED_60: dev1_device_num
+                             void*                 dest_addr,       // CHANGED_60: dev2_addr
+                             int                   dest_device_num, // CHANGED_60: dev2_device_num
                              size_t                bytes,
                              const void*           codeptr_ra )
 {
@@ -2173,6 +2241,14 @@ callback_target_data_op_emi( ompt_scope_endpoint_t endpoint,
             #endif
             )
         {
+            /* typedef struct ompt_subvolume_t { // ADDED_60
+             * const void *base;
+             * uint64_t size;
+             * uint64_t num_dims;
+             * const uint64_t *volume;
+             * const uint64_t *offsets;
+             * const uint64_t *dimensions;
+             * } ompt_subvolume_t; */
             #if HAVE( OMPT_SUBVOLUME )
             ompt_subvolume_t* subvolume_src  = ( ompt_subvolume_t* )dev1_addr;
             ompt_subvolume_t* subvolume_dest = ( ompt_subvolume_t* )dev2_addr;
@@ -2301,6 +2377,47 @@ tool_initialize( ompt_function_lookup_t lookup,
      * callbacks which will get invoked on OpenMP events by the runtime. */
     auto ompt_set_callback = ( ompt_set_callback_t )lookup( "ompt_set_callback" );
     assert( ompt_set_callback && "Could not find ompt_set_callback" );
+
+    /* typedef enum ompt_callbacks_t {
+     *   ompt_callback_thread_begin             = 1,
+     *   ompt_callback_thread_end               = 2,
+     *   ompt_callback_parallel_begin           = 3,
+     *   ompt_callback_parallel_end             = 4,
+     *   ompt_callback_task_create              = 5,
+     *   ompt_callback_task_schedule            = 6,
+     *   ompt_callback_implicit_task            = 7,
+     *   ompt_callback_target                   = 8, DEPRECATED_60
+     *   ompt_callback_target_data_op           = 9, DEPRECATED_60
+     *   ompt_callback_target_submit            = 10, DEPRECATED_60
+     *   ompt_callback_control_tool             = 11,
+     *   ompt_callback_device_initialize        = 12,
+     *   ompt_callback_device_finalize          = 13,
+     *   ompt_callback_device_load              = 14,
+     *   ompt_callback_device_unload            = 15,
+     *   ompt_callback_sync_region_wait         = 16,
+     *   ompt_callback_mutex_released           = 17,
+     *   ompt_callback_dependences              = 18,
+     *   ompt_callback_task_dependence          = 19,
+     *   ompt_callback_work                     = 20,
+     *   ompt_callback_master                   = 21, DEPRECATED_51, REMOVED_60
+     *   ompt_callback_masked                   = 21, ADDED_51
+     *   ompt_callback_target_map               = 22, DEPRECATED_60
+     *   ompt_callback_sync_region              = 23,
+     *   ompt_callback_lock_init                = 24,
+     *   ompt_callback_lock_destroy             = 25,
+     *   ompt_callback_mutex_acquire            = 26,
+     *   ompt_callback_mutex_acquired           = 27,
+     *   ompt_callback_nest_lock                = 28,
+     *   ompt_callback_flush                    = 29,
+     *   ompt_callback_cancel                   = 30,
+     *   ompt_callback_reduction                = 31,
+     *   ompt_callback_dispatch                 = 32,
+     *   ompt_callback_target_emi               = 33, ADDED_51
+     *   ompt_callback_target_data_op_emi       = 34, ADDED_51
+     *   ompt_callback_target_submit_emi        = 35, ADDED_51
+     *   ompt_callback_target_map_emi           = 36, ADDED_51
+     *   ompt_callback_error                    = 37
+     * } ompt_callbacks_t; */
 
     /* Register callbacks for the host side */
 #define CALLBACK( name )                                                       \
