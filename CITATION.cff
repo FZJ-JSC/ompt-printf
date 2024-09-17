@@ -1,0 +1,38 @@
+# What is a CITATION.cff file?
+# See https://citation-file-format.github.io/
+
+cff-version: 1.2.0
+title: ompt-printf
+abstract: >-
+  In version 5.0 of the OpenMP specification, the OpenMP Tools Interface
+  (OMPT) was introduced, providing means to collect precise information
+  about the application's use of OpenMP directives and lock routines.
+  Although provided with a detailed specification, understanding and
+  correctly handling the CPU execution model event sequence dispatched
+  from various vendor's runtimes requires detailed analysis of events,
+  their parameters and executing threads. To facilitate this analysis,
+  we developed ompt-printf, an OMPT tool that allows for dumping
+  execution model events and corresponding metadata for post-mortem
+  inspection.
+message: >-
+  If you use this software, please cite it using the metadata from
+  this file.
+type: software
+repository-code: 'https://github.com/FZJ-JSC/ompt-printf'
+keywords:
+  - OpenMP Tools Interface
+  - Performance measurement
+  - OpenMP
+license: BSD-3-Clause
+contact:
+  - email: support@score-p.org
+# Authors of ompt-printf, in chronological order:
+authors:
+  - family-names: Reuter
+    given-names: Jan André
+    email: j.reuter@fz-juelich.de
+    orcid: https://orcid.org/0000-0002-1219-0310
+  - family-names: Feld
+    given-names: Christian
+    email: c.feld@fz-juelich.de
+    orcid: https://orcid.org/0000-0001-7685-3497
