@@ -1,0 +1,313 @@
+#
+# Copyright (c) 2024,
+# Forschungszentrum Juelich GmbH, Germany
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above
+#    copyright notice, this list of conditions and the following
+#    disclaimer in the documentation and/or other materials provided
+#    with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its
+#    contributors may be used to endorse or promote products derived
+#    from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+# INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+# STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+# OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+
+name: Test on multiple compiler and OS platforms
+
+on:
+    push:
+        branches: [ "main", "openmp-52", "openmp-tr13" ]
+    pull_request:
+        branches: [ "main", "openmp-52", "openmp-tr13" ]
+
+jobs:
+    job_ubuntu-24-clang:
+        runs-on: ubuntu-latest
+        container: ubuntu:24.04
+        steps:
+            - uses: actions/checkout@v4
+            - run: apt-get update && apt-get upgrade -y
+            - run: apt-get install -y clang libomp-dev cmake
+            - uses: ./.github/actions/build-and-test-ompt-printf
+              with:
+                compiler-toolchain: Clang
+    job_ubuntu-22-clang:
+        runs-on: ubuntu-latest
+        container: ubuntu:22.04
+        steps:
+            - uses: actions/checkout@v4
+            - run: apt-get update && apt-get upgrade -y
+            - run: apt-get install -y clang libomp-dev cmake
+            - uses: ./.github/actions/build-and-test-ompt-printf
+              with:
+                compiler-toolchain: Clang
+    job_ubuntu-20-clang:
+        runs-on: ubuntu-latest
+        container: ubuntu:20.04
+        steps:
+            - uses: actions/checkout@v4
+            - run: export DEBIAN_FRONTEND=noninteractive
+            - run: export TZ=Etc/UTC
+            - run: apt-get update && apt-get upgrade -y
+            - run: apt-get install -y clang libomp-dev cmake
+            - uses: ./.github/actions/build-and-test-ompt-printf
+              with:
+                compiler-toolchain: Clang
+    job_debian-12-clang:
+        runs-on: ubuntu-latest
+        container: debian:12
+        steps:
+            - uses: actions/checkout@v4
+            - run: apt-get update && apt-get upgrade -y
+            - run: apt-get install -y clang libomp-dev cmake build-essential
+            - uses: ./.github/actions/build-and-test-ompt-printf
+              with:
+                compiler-toolchain: Clang
+    job_debian-11-clang:
+        runs-on: ubuntu-latest
+        container: debian:11
+        steps:
+            - uses: actions/checkout@v4
+            - run: apt-get update && apt-get upgrade -y
+            - run: apt-get install -y clang libomp-dev cmake build-essential
+            - uses: ./.github/actions/build-and-test-ompt-printf
+              with:
+                compiler-toolchain: Clang
+    job_debian-sid-clang:
+        runs-on: ubuntu-latest
+        container: debian:sid
+        steps:
+            - uses: actions/checkout@v4
+            - run: apt-get update && apt-get upgrade -y
+            - run: apt-get install -y clang libomp-dev cmake build-essential
+            - uses: ./.github/actions/build-and-test-ompt-printf
+              with:
+                compiler-toolchain: Clang
+    job_almalinux-8-clang:
+        runs-on: ubuntu-latest
+        container: almalinux:8
+        steps:
+            - uses: actions/checkout@v4
+            - run: dnf update -y
+            - run: dnf install -y clang cmake
+            - uses: ./.github/actions/build-and-test-ompt-printf
+              with:
+                compiler-toolchain: Clang
+    job_almalinux-9-clang:
+        runs-on: ubuntu-latest
+        container: almalinux:9
+        steps:
+            - uses: actions/checkout@v4
+            - run: dnf update -y
+            - run: dnf install -y clang cmake
+            - uses: ./.github/actions/build-and-test-ompt-printf
+              with:
+                compiler-toolchain: Clang
+    job_rockylinux-8-clang:
+        runs-on: ubuntu-latest
+        container: rockylinux:8
+        steps:
+            - uses: actions/checkout@v4
+            - run: dnf update -y
+            - run: dnf install -y clang cmake
+            - uses: ./.github/actions/build-and-test-ompt-printf
+              with:
+                compiler-toolchain: Clang
+    job_rockylinux-9-clang:
+        runs-on: ubuntu-latest
+        container: rockylinux:9
+        steps:
+            - uses: actions/checkout@v4
+            - run: dnf update -y
+            - run: dnf install -y clang cmake
+            - uses: ./.github/actions/build-and-test-ompt-printf
+              with:
+                compiler-toolchain: Clang
+    job_fedora-40-clang:
+        runs-on: ubuntu-latest
+        container: fedora:40
+        steps:
+          - uses: actions/checkout@v4
+          - run: dnf update -y
+          - run: dnf install -y clang cmake
+          - uses: ./.github/actions/build-and-test-ompt-printf
+            with:
+              compiler-toolchain: Clang   
+    job_fedora-39-clang:    
+        runs-on: ubuntu-latest
+        container: fedora:39  
+        steps:
+            - uses: actions/checkout@v4
+            - run: dnf update -y
+            - run: dnf install -y clang cmake
+            - uses: ./.github/actions/build-and-test-ompt-printf
+              with:
+                compiler-toolchain: Clang
+    job_fedora-rawhide-clang:
+        runs-on: ubuntu-latest
+        container: fedora:rawhide
+        steps:
+          - uses: actions/checkout@v4
+          - run: dnf update -y
+          - run: dnf install -y clang cmake
+          - uses: ./.github/actions/build-and-test-ompt-printf
+            with:
+              compiler-toolchain: Clang
+    job_opensuse-leap-15-clang:
+        runs-on: ubuntu-latest
+        container: opensuse/leap:15.6
+        steps:
+          - run: zypper update -y
+          - run: zypper install -y --type pattern devel_basis
+          - run: zypper install -y clang cmake libstdc++-devel libomp-devel tar gzip
+          - uses: actions/checkout@v4
+          - uses: ./.github/actions/build-and-test-ompt-printf
+            with:
+              compiler-toolchain: Clang
+    job_archlinux-clang:
+        runs-on: ubuntu-latest
+        container: archlinux:latest
+        steps:
+          - uses: actions/checkout@v4
+          - run: pacman -Syu --noconfirm
+          - run: pacman -S --noconfirm clang openmp llvm cmake make
+          - uses: ./.github/actions/build-and-test-ompt-printf
+            with:
+              compiler-toolchain: Clang
+    job_intel-oneapi-2024-2-0:
+        runs-on: ubuntu-latest
+        container: intel/oneapi:2024.2.0-1-devel-ubuntu22.04
+        steps:
+          - uses: actions/checkout@v4
+          - run: rm -f /etc/apt/sources.list.d/oneAPI.list /etc/apt/sources.list.d/intel-graphics.list
+          - run: apt-get update -y
+          - run: apt-get install -y cmake
+          - uses: ./.github/actions/build-and-test-ompt-printf
+            with:
+              compiler-toolchain: oneAPI
+    job_intel-oneapi-2024-1-0:
+        runs-on: ubuntu-latest
+        container: intel/oneapi:2024.1.0-devel-ubuntu22.04
+        steps:
+          - uses: actions/checkout@v4
+          - run: rm -f /etc/apt/sources.list.d/oneAPI.list /etc/apt/sources.list.d/intel-graphics.list
+          - run: apt-get update -y
+          - run: apt-get install -y cmake
+          - uses: ./.github/actions/build-and-test-ompt-printf
+            with:
+              compiler-toolchain: oneAPI
+    job_intel-oneapi-2024-0-0:
+        runs-on: ubuntu-latest
+        container: intel/oneapi:2024.0.0-devel-ubuntu22.04
+        steps:
+          - uses: actions/checkout@v4
+          - run: rm -f /etc/apt/sources.list.d/oneAPI.list /etc/apt/sources.list.d/intel-graphics.list
+          - run: apt-get update -y
+          - run: apt-get install -y cmake
+          - uses: ./.github/actions/build-and-test-ompt-printf
+            with:
+              compiler-toolchain: oneAPI
+# Drop NVHPC due to images too large for GitHub Actions
+#     job_nvhpc-24-7:
+#         runs-on: ubuntu-latest
+#         container: nvcr.io/nvidia/nvhpc:24.7-devel-cuda12.5-ubuntu22.04
+#         steps:
+#           - uses: actions/checkout@v4
+#           - run: apt-get update -y
+#           - run: apt-get install -y cmake
+#           - uses: ./.github/actions/build-and-test-ompt-printf
+#             with:
+#               compiler-toolchain: NVHPC
+#     job_nvhpc-24-5:
+#         runs-on: ubuntu-latest
+#         container: nvcr.io/nvidia/nvhpc:24.5-devel-cuda12.4-ubuntu22.04
+#         steps:
+#           - uses: actions/checkout@v4
+#           - run: apt-get update -y
+#           - run: apt-get install -y cmake
+#           - uses: ./.github/actions/build-and-test-ompt-printf
+#             with:
+#               compiler-toolchain: NVHPC
+#     job_nvhpc-24-3:
+#         runs-on: ubuntu-latest
+#         container: nvcr.io/nvidia/nvhpc:24.3-devel-cuda12.3-ubuntu22.04
+#         steps:
+#           - uses: actions/checkout@v4
+#           - run: apt-get update -y
+#           - run: apt-get install -y cmake
+#           - uses: ./.github/actions/build-and-test-ompt-printf
+#             with:
+#               compiler-toolchain: NVHPC
+    job_rocm-6-2:
+        runs-on: ubuntu-latest
+        container: rocm/dev-ubuntu-22.04:6.2
+        steps:
+          - uses: actions/checkout@v4
+          - run: apt-get update -y
+          - run: apt-get install -y cmake
+          - uses: ./.github/actions/build-and-test-ompt-printf
+            with:
+              compiler-toolchain: AMDClang
+              extra-path: /opt/rocm/bin
+    job_rocm-6-1-2:
+        runs-on: ubuntu-latest
+        container: rocm/dev-ubuntu-22.04:6.1.2
+        steps:
+          - uses: actions/checkout@v4
+          - run: apt-get update -y
+          - run: apt-get install -y cmake
+          - uses: ./.github/actions/build-and-test-ompt-printf
+            with:
+              compiler-toolchain: AMDClang
+              extra-path: /opt/rocm/bin
+    job_rocm-6-0-2:
+        runs-on: ubuntu-latest
+        container: rocm/dev-ubuntu-22.04:6.0.2
+        steps:
+          - uses: actions/checkout@v4
+          - run: apt-get update -y
+          - run: apt-get install -y cmake
+          - uses: ./.github/actions/build-and-test-ompt-printf
+            with:
+              compiler-toolchain: AMDClang
+              extra-path: /opt/rocm/bin
+    job_llvm-trunk:
+        runs-on: ubuntu-latest
+        container: ubuntu:24.04
+        env:
+          LLVM_DEVELOPMENT_VERSION: 20
+        steps:
+          - uses: actions/checkout@v4
+          - run: apt-get update
+          - run: apt-get install -y wget gnupg
+          - run: echo "deb http://apt.llvm.org/noble/ llvm-toolchain-noble main" >> /etc/apt/sources.list
+          - run: echo "deb-src http://apt.llvm.org/noble/ llvm-toolchain-noble main" >> /etc/apt/sources.list
+          - run: wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
+          - run: apt-get update && apt-get upgrade -y
+          - run: apt-get install -y clang-${LLVM_DEVELOPMENT_VERSION} libomp-${LLVM_DEVELOPMENT_VERSION}-dev cmake
+          - run: ln -s /usr/bin/clang-${LLVM_DEVELOPMENT_VERSION} /usr/bin/clang
+          - run: ln -s /usr/bin/clang++-${LLVM_DEVELOPMENT_VERSION} /usr/bin/clang++
+          - uses: ./.github/actions/build-and-test-ompt-printf
+            with:
+              compiler-toolchain: Clang
+  
