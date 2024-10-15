@@ -82,7 +82,6 @@ typedef struct registration_data_t
 typedef struct device_functions_t
 {
     /* Required functions */
-    ompt_get_device_time_t       get_device_time;
     ompt_set_trace_ompt_t        set_trace_ompt;
     ompt_start_trace_t           start_trace;
     ompt_flush_trace_t           flush_trace;
@@ -129,6 +128,7 @@ atomic_printf( const char* format, ... )
         }
         ret = vprintf( format, args );
         va_end( args );
+        fflush( stdout );
     }
     return ret;
 }
@@ -1778,36 +1778,29 @@ callback_device_initialize( int                    device_num,
     devices[ device_num ] = new_device;
     if ( lookup )
     {
-        new_device->device_functions.get_device_time = ( ompt_get_device_time_t )lookup( "ompt_get_device_time" );
-        if ( !new_device->device_functions.get_device_time )
-        {
-            return;
-        }
-        new_device->device_functions.set_trace_ompt = ( ompt_set_trace_ompt_t )lookup( "ompt_set_trace_ompt" );
-        if ( !new_device->device_functions.set_trace_ompt )
-        {
-            return;
-        }
-        new_device->device_functions.start_trace = ( ompt_start_trace_t )lookup( "ompt_start_trace" );
-        if ( !new_device->device_functions.start_trace )
-        {
-            return;
-        }
-        new_device->device_functions.flush_trace = ( ompt_flush_trace_t )lookup( "ompt_flush_trace" );
-        if ( !new_device->device_functions.flush_trace )
-        {
-            return;
-        }
-        new_device->device_functions.advance_buffer_cursor = ( ompt_advance_buffer_cursor_t )lookup( "ompt_advance_buffer_cursor" );
-        if ( !new_device->device_functions.advance_buffer_cursor )
-        {
-            return;
-        }
-        new_device->device_functions.get_record_ompt = ( ompt_get_record_ompt_t )lookup( "ompt_get_record_ompt" );
-        if ( !new_device->device_functions.get_record_ompt )
-        {
-            return;
-        }
+#define LOOKUP_DEVICE_FUNCTION( name ) \
+    do \
+    { \
+        new_device->device_functions.name = ( ompt_##name##_t )lookup( "ompt_" #name ); \
+        if ( !new_device->device_functions.name ) \
+        { \
+            if constexpr ( mode > printf_mode::disable_output ) \
+            { \
+                atomic_printf( "[%s] device_num = %d | %s not found\n", __FUNCTION__, device_num, #name ); \
+            } \
+            return; \
+        } \
+    } \
+    while ( 0 )
+
+        LOOKUP_DEVICE_FUNCTION( set_trace_ompt );
+        LOOKUP_DEVICE_FUNCTION( start_trace );
+        LOOKUP_DEVICE_FUNCTION( flush_trace );
+        LOOKUP_DEVICE_FUNCTION( advance_buffer_cursor );
+        LOOKUP_DEVICE_FUNCTION( get_record_ompt );
+
+#undef LOOKUP_DEVICE_FUNCTION
+
         /* Optional functions */
         new_device->device_functions.stop_trace  = ( ompt_stop_trace_t )lookup( "ompt_stop_trace" );
         new_device->device_functions.pause_trace = ( ompt_pause_trace_t )lookup( "ompt_pause_trace" );
@@ -1818,24 +1811,25 @@ callback_device_initialize( int                    device_num,
 
         /* Register buffer events */
         ompt_set_result_t result;
+        bool              registration_success = false;
+
+        /* ompt_callback_target[_emi] */
         #if HAVE( OMPT_CALLBACK_TARGET_EMI )
-        result = new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target_emi );
+        result               = new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target_emi );
+        registration_success = result == ompt_set_always;
         if constexpr ( mode > printf_mode::disable_output )
         {
-            if ( result != ompt_set_error )
-            {
-                atomic_printf( "[%s] device_num = %d | ompt_callback_target_emi = %s\n",
-                               __FUNCTION__,
-                               device_num,
-                               set_result2string( result ).c_str() );
-            }
+            atomic_printf( "[%s] device_num = %d | ompt_callback_target_emi = %s\n",
+                           __FUNCTION__,
+                           device_num,
+                           set_result2string( result ).c_str() );
         }
-        #else
-        result = new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target );
-        if constexpr ( mode > printf_mode::disable_output )
+        #endif
+        #if HAVE( OMPT_CALLBACK_TARGET )
+        if ( !registration_success )
         {
-            if ( result != ompt_set_error )
-            {
+            result = new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target );
+            if constexpr ( mode > printf_mode::disable_output ) {
                 atomic_printf( "[%s] device_num = %d | ompt_callback_target = %s\n",
                                __FUNCTION__,
                                device_num,
@@ -1843,49 +1837,53 @@ callback_device_initialize( int                    device_num,
             }
         }
         #endif
+        /* ompt_callback_target_data_op[_emi] */
+        registration_success = false;
         #if HAVE( OMPT_CALLBACK_TARGET_DATA_OP_EMI )
-        new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target_data_op_emi );
+        result               = new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target_data_op_emi );
+        registration_success = result == ompt_set_always;
         if constexpr ( mode > printf_mode::disable_output )
         {
-            if ( result != ompt_set_error )
-            {
-                atomic_printf( "[%s] device_num = %d | ompt_callback_target_data_op_emi = %s\n",
-                               __FUNCTION__,
-                               device_num,
-                               set_result2string( result ).c_str() );
-            }
+            atomic_printf( "[%s] device_num = %d | ompt_callback_target_data_op_emi = %s\n",
+                           __FUNCTION__,
+                           device_num,
+                           set_result2string( result ).c_str() );
         }
-        #else
-        new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target_data_op );
-        if constexpr ( mode > printf_mode::disable_output )
+        #endif
+        #if HAVE( OMPT_CALLBACK_TARGET_DATA_OP )
+        if ( !registration_success )
         {
-            if ( result != ompt_set_error )
-            {
-                atomic_printf( "[%s] device_num = %d | ompt_callback_target_data_op = %s\n",
-                               __FUNCTION__,
-                               device_num,
-                               set_result2string( result ).c_str() );
+            result = new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target_data_op );
+            if constexpr ( mode > printf_mode::disable_output ) {
+                if ( result != ompt_set_error )
+                {
+                    atomic_printf( "[%s] device_num = %d | ompt_callback_target_data_op = %s\n",
+                                   __FUNCTION__,
+                                   device_num,
+                                   set_result2string( result ).c_str() );
+                }
             }
         }
         #endif
+
+        /* ompt_callback_target_map[_emi] */
+        registration_success = false;
         #if HAVE( OMPT_CALLBACK_TARGET_MAP_EMI )
-        new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target_map_emi );
+        result               = new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target_map_emi );
+        registration_success = result == ompt_set_always;
         if constexpr ( mode > printf_mode::disable_output )
         {
-            if ( result != ompt_set_error )
-            {
-                atomic_printf( "[%s] device_num = %d | ompt_callback_target_map_emi = %s\n",
-                               __FUNCTION__,
-                               device_num,
-                               set_result2string( result ).c_str() );
-            }
+            atomic_printf( "[%s] device_num = %d | ompt_callback_target_map_emi = %s\n",
+                           __FUNCTION__,
+                           device_num,
+                           set_result2string( result ).c_str() );
         }
-        #else
-        new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target_map );
-        if constexpr ( mode > printf_mode::disable_output )
+        #endif
+        #if HAVE( OMPT_CALLBACK_TARGET_MAP )
+        if ( !registration_success )
         {
-            if ( result != ompt_set_error )
-            {
+            result = new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target_map );
+            if constexpr ( mode > printf_mode::disable_output ) {
                 atomic_printf( "[%s] device_num = %d | ompt_callback_target_map = %s\n",
                                __FUNCTION__,
                                device_num,
@@ -1893,24 +1891,26 @@ callback_device_initialize( int                    device_num,
             }
         }
         #endif
+
+        /* ompt_callback_target_submit[_emi] */
+        registration_success = false;
         #if HAVE( OMPT_CALLBACK_TARGET_SUBMIT_EMI )
-        new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target_submit_emi );
+        result               = new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target_submit_emi );
+        registration_success = result == ompt_set_always;
         if constexpr ( mode > printf_mode::disable_output )
         {
-            if ( result != ompt_set_error )
-            {
-                atomic_printf( "[%s] device_num = %d | ompt_callback_target_submit_emi = %s\n",
-                               __FUNCTION__,
-                               device_num,
-                               set_result2string( result ).c_str() );
-            }
+            atomic_printf( "[%s] device_num = %d | ompt_callback_target_submit_emi = %s\n",
+                           __FUNCTION__,
+                           device_num,
+                           set_result2string( result ).c_str() );
         }
-        #else
-        new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target_submit );
-        if constexpr ( mode > printf_mode::disable_output )
+        #endif
+        #if HAVE( OMPT_CALLBACK_TARGET_SUBMIT )
+        if ( !registration_success )
         {
-            if ( result != ompt_set_error )
-            {
+            result = new_device->device_functions.set_trace_ompt( new_device->address, true,
+                                                                  ompt_callback_target_submit );
+            if constexpr ( mode > printf_mode::disable_output ) {
                 atomic_printf( "[%s] device_num = %d | ompt_callback_target_submit = %s\n",
                                __FUNCTION__,
                                device_num,
@@ -1941,7 +1941,17 @@ callback_device_finalize( int device_num )
                        device_num );
     }
 
-    assert( devices.find( device_num ) != devices.end() && "Device not found" );
+    if ( devices.find( device_num ) == devices.end() )
+    {
+        if constexpr ( mode > printf_mode::disable_output )
+        {
+            atomic_printf( "[%s] Device %d not found. "
+                           "The runtime may have already cleaned up some state. Skip flushing buffers.\n",
+                           __FUNCTION__,
+                           device_num );
+        }
+        return;
+    }
     auto* finalized_device = devices[ device_num ];
     if ( finalized_device->device_functions.flush_trace )
     {
@@ -2361,6 +2371,7 @@ tool_initialize( ompt_function_lookup_t lookup,
                  int                    initial_device_num,
                  ompt_data_t*           tool_data )
 {
+    constexpr auto function_name = __FUNCTION__;
     if constexpr ( mode == printf_mode::callback )
     {
         print_function_name( __FUNCTION__ );
@@ -2425,6 +2436,46 @@ tool_initialize( ompt_function_lookup_t lookup,
     {                                                                          \
         ompt_callback_##name, ( ompt_callback_t )&callback_##name<mode>, #name \
     }
+
+    /* Registers all callbacks in initializer list */
+    const auto register_all_callbacks =
+        [ &ompt_set_callback ]( const std::initializer_list<registration_data_t>& callbacks )
+        {
+            for ( const auto& cb: callbacks )
+            {
+                ompt_set_result_t result = ompt_set_callback( cb.event, cb.callback );
+                if constexpr ( mode >= printf_mode::callback )
+                {
+                    atomic_printf( "[%s] %18s = %s\n",
+                                   function_name,
+                                   cb.name,
+                                   set_result2string( result ).c_str() );
+                }
+            }
+        };
+
+    /* Registers all callbacks in initializer list, but breaks once a callback was successfully registered.
+     * This is required for the target callbacks, where only one of the two options can be registered. */
+    const auto register_callbacks_break_on_success =
+        [ &ompt_set_callback ]( const std::initializer_list<registration_data_t>& callbacks )
+        {
+            for ( const auto& cb: callbacks )
+            {
+                ompt_set_result_t result = ompt_set_callback( cb.event, cb.callback );
+                if constexpr ( mode >= printf_mode::callback )
+                {
+                    atomic_printf( "[%s] %18s = %s\n",
+                                   function_name,
+                                   cb.name,
+                                   set_result2string( result ).c_str() );
+                }
+                if ( result == ompt_set_always )
+                {
+                    break;
+                }
+            }
+        };
+
     const std::initializer_list<registration_data_t> host_callbacks = {
         CALLBACK( thread_begin ),
         CALLBACK( thread_end ),
@@ -2452,18 +2503,7 @@ tool_initialize( ompt_function_lookup_t lookup,
         CALLBACK( reduction ),
         CALLBACK( dispatch ),
     };
-
-    for ( const auto& cb: host_callbacks )
-    {
-        ompt_set_result_t result = ompt_set_callback( cb.event, cb.callback );
-        if constexpr ( mode >= printf_mode::callback )
-        {
-            atomic_printf( "[%s] %18s = %s\n",
-                           __FUNCTION__,
-                           cb.name,
-                           set_result2string( result ).c_str() );
-        }
-    }
+    register_all_callbacks( host_callbacks );
 
     /* Register callbacks for the host side accelerator */
     const std::initializer_list<registration_data_t> host_accel_callbacks = {
@@ -2471,39 +2511,49 @@ tool_initialize( ompt_function_lookup_t lookup,
         CALLBACK( device_finalize ),
         CALLBACK( device_load ),
         CALLBACK( device_unload ),
+    };
+    register_all_callbacks( host_accel_callbacks );
+
+    const std::initializer_list<registration_data_t> host_accel_target = {
         #if HAVE( OMPT_CALLBACK_TARGET_EMI )
         CALLBACK( target_emi ),
-        #else
+        #endif
+        #if HAVE( OMPT_CALLBACK_TARGET )
         CALLBACK( target ),
         #endif
+    };
+    register_callbacks_break_on_success( host_accel_target );
+
+    const std::initializer_list<registration_data_t> host_accel_target_map = {
         #if HAVE( OMPT_CALLBACK_TARGET_MAP_EMI )
         CALLBACK( target_map_emi ),
-        #else
+        #endif
+        #if HAVE( OMPT_CALLBACK_TARGET_MAP )
         CALLBACK( target_map ),
         #endif
+    };
+    register_callbacks_break_on_success( host_accel_target_map );
+
+    const std::initializer_list<registration_data_t> host_accel_target_data_op = {
         #if HAVE( OMPT_CALLBACK_TARGET_DATA_OP_EMI )
         CALLBACK( target_data_op_emi ),
-        #else
+        #endif
+        #if HAVE( OMPT_CALLBACK_TARGET_DATA_OP )
         CALLBACK( target_data_op ),
         #endif
+    };
+    register_callbacks_break_on_success( host_accel_target_data_op );
+
+    const std::initializer_list<registration_data_t> host_accel_target_submit = {
         #if HAVE( OMPT_CALLBACK_TARGET_SUBMIT_EMI )
-        CALLBACK( target_submit_emi )
-        #else
+        CALLBACK( target_submit_emi ),
+        #endif
+        #if HAVE( OMPT_CALLBACK_TARGET_SUBMIT )
         CALLBACK( target_submit )
         #endif
     };
+    register_callbacks_break_on_success( host_accel_target_submit );
 
-    for ( const auto& cb: host_accel_callbacks )
-    {
-        ompt_set_result_t result = ompt_set_callback( cb.event, cb.callback );
-        if constexpr ( mode >= printf_mode::callback )
-        {
-            atomic_printf( "[%s] %18s = %s\n",
-                           __FUNCTION__,
-                           cb.name,
-                           set_result2string( result ).c_str() );
-        }
-    }
 #undef CALLBACK
 
     return true; /* non-zero indicates success */
