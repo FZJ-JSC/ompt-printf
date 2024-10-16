@@ -79,6 +79,24 @@ After building the library, the tool can be used with the environment variable
 `OMP_TOOL_LIBRARIES`. Please note that NVHPC requires adding `-mp=ompt` when building
 a program since this affects code generation and the linked OpenMP library.
 
+## Controlling the tool
+
+`ompt-printf` implements the `ompt_callback_control_tool` callback using the default commands
+specified in the OpenMP standard. An application can use `omp_control_tool` to control the
+device tracing interface with the following options:
+
+| Command                  | Modifier                            | Effect                                            |
+|--------------------------|-------------------------------------|---------------------------------------------------|
+| `omp_control_tool_start` | (ignored)                           | Starts device tracing on all initialized devices. |
+| `omp_control_tool_flush` | (ignored)                           | Flushes all device tracing buffers.               |
+| `omp_control_tool_pause` | `true` to pause, `false` to unpause | Pauses device tracing on all initialized devices. |
+| `omp_control_tool_end`   | (ignored)                           | Stops device tracing on all initialized devices.  |
+
+These options will only affect devices which have been fully initialized and support the device tracing interface.
+The remainder of the tool will not be affected by these commands.
+
+## Example
+
 Here is an example on building a program with the tool enabled (Clang 17.0.6, Arch Linux):
 ```bash
 $ cat my-openmp-example.c

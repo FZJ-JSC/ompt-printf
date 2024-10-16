@@ -40,6 +40,7 @@
 #include <sstream>
 #include <string>
 
+#include <omp.h>
 #include <omp-tools.h>
 #include <unordered_map>
 
@@ -2363,6 +2364,81 @@ callback_target_submit_emi( ompt_scope_endpoint_t endpoint,
     }
 }
 
+/* Tool control */
+
+template<printf_mode mode>
+int
+callback_control_tool( uint64_t    command,
+                       uint64_t    modifier,
+                       void*       arg,
+                       const void* codeptr_ra )
+{
+    if constexpr ( mode == printf_mode::callback )
+    {
+        print_function_name( __FUNCTION__ );
+    }
+    else if constexpr ( mode == printf_mode::callback_include_args )
+    {
+        atomic_printf( "[%s] command = %lu | modifier = %lu | arg = %p | codeptr_ra = %p\n",
+                       __FUNCTION__,
+                       command,
+                       modifier,
+                       arg,
+                       codeptr_ra );
+        return omp_control_tool_success;
+    }
+    switch ( command )
+    {
+        case omp_control_tool_start:
+        {
+            for ( auto device : devices )
+            {
+                if ( device.second->device_functions.start_trace )
+                {
+                    device.second->device_functions.start_trace( device.second->address,
+                                                                 callback_buffer_request<mode>,
+                                                                 callback_buffer_complete<mode> );
+                }
+            }
+            return omp_control_tool_success;
+        }
+        case omp_control_tool_flush:
+        {
+            for ( auto device : devices )
+            {
+                if ( device.second->device_functions.flush_trace )
+                {
+                    device.second->device_functions.flush_trace( device.second->address );
+                }
+            }
+            return omp_control_tool_success;
+        }
+        case omp_control_tool_pause:
+        {
+            for ( auto device : devices )
+            {
+                if ( device.second->device_functions.pause_trace )
+                {
+                    device.second->device_functions.pause_trace( device.second->address, static_cast<bool>( modifier ) );
+                }
+            }
+        }
+        case omp_control_tool_end:
+        {
+            for ( auto device : devices )
+            {
+                if ( device.second->device_functions.stop_trace )
+                {
+                    device.second->device_functions.stop_trace( device.second->address );
+                }
+            }
+            return omp_control_tool_success;
+        }
+        default:
+            return omp_control_tool_ignored;
+    }
+}
+
 /* Initialization / Finalization sequence */
 
 template<printf_mode mode>
@@ -2502,6 +2578,7 @@ tool_initialize( ompt_function_lookup_t lookup,
         CALLBACK( cancel ),
         CALLBACK( reduction ),
         CALLBACK( dispatch ),
+        CALLBACK( control_tool ),
     };
     register_all_callbacks( host_callbacks );
 
