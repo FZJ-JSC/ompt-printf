@@ -549,7 +549,7 @@ work2string( ompt_work_t t )
         case ompt_work_loop_static:
             return "loop_static";
         #endif
-        #if HAVE( OMPT_WORK_LOOP_DYTNAMIC )
+        #if HAVE( OMPT_WORK_LOOP_DYNAMIC )
         case ompt_work_loop_dynamic:
             return "loop_dynamic";
         #endif
