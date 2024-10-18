@@ -1946,9 +1946,10 @@ callback_device_finalize( int device_num )
     {
         if constexpr ( mode > printf_mode::disable_output )
         {
-            atomic_printf( "[%s] Device %d not found. "
+            atomic_printf( "[%s] Device %d not found. Number of devices: %d. "
                            "The runtime may have already cleaned up some state. Skip flushing buffers.\n",
                            __FUNCTION__,
+                           devices.size(),
                            device_num );
         }
         return;
