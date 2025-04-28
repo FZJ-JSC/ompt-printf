@@ -91,9 +91,9 @@ typedef struct device_functions_t
     /* Optional functions */
     ompt_stop_trace_t            stop_trace;
     ompt_pause_trace_t           pause_trace;
-    #if HAVE( OMPT_GET_BUFFER_LIMITS )
-    ompt_get_buffer_limits_t     get_buffer_limits; // ADDED_60
-    #endif
+#if HAVE( OMPT_GET_BUFFER_LIMITS )
+    ompt_get_buffer_limits_t     get_buffer_limits;  // ADDED_60
+#endif
 } device_functions_t;
 
 typedef struct device_t
@@ -101,11 +101,11 @@ typedef struct device_t
     ompt_device_t*     address = nullptr;
     std::string        name;
     device_functions_t device_functions = { nullptr };
-    #if HAVE( OMPT_GET_BUFFER_LIMITS )
+#if HAVE( OMPT_GET_BUFFER_LIMITS )
     size_t             recommended_buffer_size   = 0;
     int                recommended_buffer_amount = 0;
     int                allocated_buffers         = 0;
-    #endif
+#endif
 } device_t;
 
 static std::unordered_map<ompt_id_t, device_t*> devices;
@@ -269,13 +269,13 @@ task_flag2string( uint32_t flags )
         result << "_target";
         flags -= ompt_task_target;
     }
-    #if HAVE( OMPT_TASK_TASKWAIT )
+#if HAVE( OMPT_TASK_TASKWAIT )
     else if ( flags & ompt_task_taskwait )
     {
         result << "_taskwait";
         flags -= ompt_task_taskwait;
     }
-    #endif
+#endif
 
     if ( flags & ompt_task_undeferred )
     {
@@ -303,7 +303,7 @@ task_flag2string( uint32_t flags )
         flags -= ompt_task_merged;
     }
 
-    #if HAVE( OMPT_TASK_IMPORTING ) && HAVE( OMPT_TASK_EXPORTING )
+#if HAVE( OMPT_TASK_IMPORTING ) && HAVE( OMPT_TASK_EXPORTING )
     if ( flags & ompt_task_importing )
     {
         result << "_importing";
@@ -314,7 +314,7 @@ task_flag2string( uint32_t flags )
         result << "_exporting";
         flags -= ompt_task_exporting;
     }
-    #endif
+#endif
 
     assert( flags == 0 && "Unknown ompt_task_flag_t" );
     return result.str();
@@ -334,10 +334,10 @@ endpoint2string( ompt_scope_endpoint_t t )
             return "begin";
         case ompt_scope_end:
             return "end";
-        #if HAVE( OMPT_SCOPE_BEGINEND )
+#if HAVE( OMPT_SCOPE_BEGINEND )
         case ompt_scope_beginend:
             return "beginend";
-        #endif
+#endif
         default:
             assert( false && "Unknown ompt_scope_endpoint_t" );
     }
@@ -373,10 +373,10 @@ task_status2string( ompt_task_status_t t )
             return "late_fulfill";
         case ompt_task_switch:
             return "switch";
-        #if HAVE( OMPT_TASKWAIT_COMPLETE )
+#if HAVE( OMPT_TASKWAIT_COMPLETE )
         case ompt_taskwait_complete:
             return "taskwait_complete";
-        #endif
+#endif
         default:
             assert( false && "Unknown ompt_task_status_t" );
     }
@@ -433,18 +433,18 @@ dispatch2string( ompt_dispatch_t t )
             return "iteration";
         case ompt_dispatch_section:
             return "section";
-        #if HAVE( OMPT_DISPATCH_WS_LOOP_CHUNK )
+#if HAVE( OMPT_DISPATCH_WS_LOOP_CHUNK )
         case ompt_dispatch_ws_loop_chunk:
             return "ws_loop_chunk";
-        #endif
-        #if HAVE( OMPT_DISPATCH_TASKLOOP_CHUNK )
+#endif
+#if HAVE( OMPT_DISPATCH_TASKLOOP_CHUNK )
         case ompt_dispatch_taskloop_chunk:
             return "taskloop_chunk";
-        #endif
-        #if HAVE( OMPT_DISPATCH_DISTRIBUTE_CHUNK )
+#endif
+#if HAVE( OMPT_DISPATCH_DISTRIBUTE_CHUNK )
         case ompt_dispatch_distribute_chunk:
             return "distribute_chunk";
-        #endif
+#endif
         default:
             assert( false && "Unknown ompt_dispatch_t" );
     }
@@ -538,30 +538,30 @@ work2string( ompt_work_t t )
             return "distribute";
         case ompt_work_taskloop:
             return "taskloop";
-        #if HAVE( OMPT_WORK_SCOPE )
+#if HAVE( OMPT_WORK_SCOPE )
         case ompt_work_scope:
             return "scope";
-        #endif
-        #if HAVE( OMPT_WORK_WORKDISTRIBUTE )
+#endif
+#if HAVE( OMPT_WORK_WORKDISTRIBUTE )
         case ompt_work_workdistribute:
             return "workdistribute";
-        #endif
-        #if HAVE( OMPT_WORK_LOOP_STATIC )
+#endif
+#if HAVE( OMPT_WORK_LOOP_STATIC )
         case ompt_work_loop_static:
             return "loop_static";
-        #endif
-        #if HAVE( OMPT_WORK_LOOP_DYNAMIC )
+#endif
+#if HAVE( OMPT_WORK_LOOP_DYNAMIC )
         case ompt_work_loop_dynamic:
             return "loop_dynamic";
-        #endif
-        #if HAVE( OMPT_WORK_LOOP_GUIDED )
+#endif
+#if HAVE( OMPT_WORK_LOOP_GUIDED )
         case ompt_work_loop_guided:
             return "loop_guided";
-        #endif
-        #if HAVE( OMPT_WORK_LOOP_OTHER )
+#endif
+#if HAVE( OMPT_WORK_LOOP_OTHER )
         case ompt_work_loop_other:
             return "loop_other";
-        #endif
+#endif
         default:
             assert( false && "Unknown ompt_work_t" );
     }
@@ -585,14 +585,14 @@ sync2string( ompt_sync_region_t t )
 {
     switch ( t )
     {
-        #if HAVE( OMPT_SYNC_REGION_BARRIER )
+#if HAVE( OMPT_SYNC_REGION_BARRIER )
         case ompt_sync_region_barrier:
             return "barrier";
-        #endif
-        #if HAVE( OMPT_SYNC_REGION_BARRIER_IMPLICIT )
+#endif
+#if HAVE( OMPT_SYNC_REGION_BARRIER_IMPLICIT )
         case ompt_sync_region_barrier_implicit:
             return "barrier_implicit";
-        #endif
+#endif
         case ompt_sync_region_barrier_explicit:
             return "barrier_explicit";
         case ompt_sync_region_barrier_implementation:
@@ -603,18 +603,18 @@ sync2string( ompt_sync_region_t t )
             return "taskgroup";
         case ompt_sync_region_reduction:
             return "reduction";
-        #if HAVE( OMPT_SYNC_REGION_BARRIER_IMPLICIT_WORKSHARE )
+#if HAVE( OMPT_SYNC_REGION_BARRIER_IMPLICIT_WORKSHARE )
         case ompt_sync_region_barrier_implicit_workshare:
             return "barrier_implicit_workshare";
-        #endif
-        #if HAVE( OMPT_SYNC_REGION_BARRIER_IMPLICIT_PARALLEL )
+#endif
+#if HAVE( OMPT_SYNC_REGION_BARRIER_IMPLICIT_PARALLEL )
         case ompt_sync_region_barrier_implicit_parallel:
             return "barrier_implicit_parallel";
-        #endif
-        #if HAVE( OMPT_SYNC_REGION_BARRIER_TEAMS )
+#endif
+#if HAVE( OMPT_SYNC_REGION_BARRIER_TEAMS )
         case ompt_sync_region_barrier_teams:
             return "barrier_teams";
-        #endif
+#endif
         default:
             assert( false && "Unknown ompt_sync_region_t" );
     }
@@ -646,60 +646,60 @@ data_op2string( ompt_target_data_op_t t )
     {
         case ompt_target_data_alloc:
             return "alloc";
-        #if HAVE( OMPT_TARGET_DATA_TRANSFER_TO_DEVICE )
+#if HAVE( OMPT_TARGET_DATA_TRANSFER_TO_DEVICE )
         case ompt_target_data_transfer_to_device:
             return "transfer_to_device";
-        #endif
-        #if HAVE( OMPT_TARGET_DATA_TRANSFER_FROM_DEVICE )
+#endif
+#if HAVE( OMPT_TARGET_DATA_TRANSFER_FROM_DEVICE )
         case ompt_target_data_transfer_from_device:
             return "transfer_from_device";
-        #endif
+#endif
         case ompt_target_data_delete:
             return "delete";
         case ompt_target_data_associate:
             return "associate";
         case ompt_target_data_disassociate:
             return "disassociate";
-        #if HAVE( OMPT_TARGET_DATA_TRANSFER )
+#if HAVE( OMPT_TARGET_DATA_TRANSFER )
         case ompt_target_data_transfer:
             return "transfer";
-        #endif
-        #if HAVE( OMPT_TARGET_DATA_MEMSET )
+#endif
+#if HAVE( OMPT_TARGET_DATA_MEMSET )
         case ompt_target_data_memset:
             return "memset";
-        #endif
-        #if HAVE( OMPT_TARGET_DATA_TRANSFER_RECT )
+#endif
+#if HAVE( OMPT_TARGET_DATA_TRANSFER_RECT )
         case ompt_target_data_transfer_rect:
             return "transfer_rect";
-        #endif
-        #if HAVE( OMPT_TARGET_DATA_ALLOC_ASYNC )
+#endif
+#if HAVE( OMPT_TARGET_DATA_ALLOC_ASYNC )
         case ompt_target_data_alloc_async:
             return "alloc_async";
-        #endif
-        #if HAVE( OMPT_TARGET_DATA_TRANSFER_TO_DEVICE_ASYNC )
+#endif
+#if HAVE( OMPT_TARGET_DATA_TRANSFER_TO_DEVICE_ASYNC )
         case ompt_target_data_transfer_to_device_async:
             return "transfer_to_device_async";
-        #endif
-        #if HAVE( OMPT_TARGET_DATA_TRANSFER_FROM_DEVICE_ASYNC )
+#endif
+#if HAVE( OMPT_TARGET_DATA_TRANSFER_FROM_DEVICE_ASYNC )
         case ompt_target_data_transfer_from_device_async:
             return "transfer_from_device_async";
-        #endif
-        #if HAVE( OMPT_TARGET_DATA_DELETE_ASYNC )
+#endif
+#if HAVE( OMPT_TARGET_DATA_DELETE_ASYNC )
         case ompt_target_data_delete_async:
             return "delete_async";
-        #endif
-        #if HAVE( OMPT_TARGET_DATA_TRANSFER_ASYNC )
+#endif
+#if HAVE( OMPT_TARGET_DATA_TRANSFER_ASYNC )
         case ompt_target_data_transfer_async:
             return "transfer_async";
-        #endif
-        #if HAVE( OMPT_TARGET_DATA_MEMSET_ASYNC )
+#endif
+#if HAVE( OMPT_TARGET_DATA_MEMSET_ASYNC )
         case ompt_target_data_memset_async:
             return "memset_async";
-        #endif
-        #if HAVE( OMPT_TARGET_DATA_TRANSFER_RECT_ASYNC )
+#endif
+#if HAVE( OMPT_TARGET_DATA_TRANSFER_RECT_ASYNC )
         case ompt_target_data_transfer_rect_async:
             return "transfer_rect_async";
-        #endif
+#endif
         default:
             assert( false && "Unknown ompt_target_data_op_t" );
     }
@@ -729,22 +729,22 @@ target2string( ompt_target_t t )
             return "target_exit_data";
         case ompt_target_update:
             return "target_update";
-        #if HAVE( OMPT_TARGET_NOWAIT )
+#if HAVE( OMPT_TARGET_NOWAIT )
         case ompt_target_nowait:
             return "target_nowait";
-        #endif
-        #if HAVE( OMPT_TARGET_ENTER_DATA_NOWAIT )
+#endif
+#if HAVE( OMPT_TARGET_ENTER_DATA_NOWAIT )
         case ompt_target_enter_data_nowait:
             return "target_enter_data_nowait";
-        #endif
-        #if HAVE( OMPT_TARGET_EXIT_DATA_NOWAIT )
+#endif
+#if HAVE( OMPT_TARGET_EXIT_DATA_NOWAIT )
         case ompt_target_exit_data_nowait:
             return "target_exit_data_nowait";
-        #endif
-        #if HAVE( OMPT_TARGET_UPDATE_NOWAIT )
+#endif
+#if HAVE( OMPT_TARGET_UPDATE_NOWAIT )
         case ompt_target_update_nowait:
             return "target_update_nowait";
-        #endif
+#endif
         default:
             assert( false && "Unknown ompt_target_t" );
     }
@@ -797,34 +797,34 @@ map_flag2string( unsigned int t )
         result << "implicit";
         t -= ompt_target_map_flag_implicit;
     }
-    #if HAVE( OMPT_TARGET_MAP_FLAG_ALWAYS )
+#if HAVE( OMPT_TARGET_MAP_FLAG_ALWAYS )
     else if ( t & ompt_target_map_flag_always )
     {
         result << "always";
         t -= ompt_target_map_flag_always;
     }
-    #endif
-    #if HAVE( OMPT_TARGET_MAP_FLAG_PRESENT )
+#endif
+#if HAVE( OMPT_TARGET_MAP_FLAG_PRESENT )
     else if ( t & ompt_target_map_flag_present )
     {
         result << "present";
         t -= ompt_target_map_flag_present;
     }
-    #endif
-    #if HAVE( OMPT_TARGET_MAP_FLAG_CLOSE )
+#endif
+#if HAVE( OMPT_TARGET_MAP_FLAG_CLOSE )
     else if ( t & ompt_target_map_flag_close )
     {
         result << "close";
         t -= ompt_target_map_flag_close;
     }
-    #endif
-    #if HAVE( OMPT_TARGET_MAP_FLAG_SHARED )
+#endif
+#if HAVE( OMPT_TARGET_MAP_FLAG_SHARED )
     else if ( t & ompt_target_map_flag_shared )
     {
         result << "shared";
         t -= ompt_target_map_flag_shared;
     }
-    #endif
+#endif
     assert( t == 0 && "Unknown ompt_target_map_flag_t" );
     return result.str();
 }
@@ -857,18 +857,18 @@ dependence_type2string( ompt_dependence_type_t t )
             return "source";
         case ompt_dependence_type_sink:
             return "sink";
-        #if HAVE( OMPT_DEPENDENCE_TYPE_INOUTSET )
+#if HAVE( OMPT_DEPENDENCE_TYPE_INOUTSET )
         case ompt_dependence_type_inoutset:
             return "inoutset";
-        #endif
-        #if HAVE( OMPT_DEPENDENCE_TYPE_OUT_ALL_MEMORY )
+#endif
+#if HAVE( OMPT_DEPENDENCE_TYPE_OUT_ALL_MEMORY )
         case ompt_dependence_type_out_all_memory:
             return "out_all_memory";
-        #endif
-        #if HAVE( OMPT_DEPENDENCE_TYPE_INOUT_ALL_MEMORY )
+#endif
+#if HAVE( OMPT_DEPENDENCE_TYPE_INOUT_ALL_MEMORY )
         case ompt_dependence_type_inout_all_memory:
             return "inout_all_memory";
-        #endif
+#endif
         default:
             assert( false && "Unknown ompt_dependence_type_t" );
     }
@@ -1529,7 +1529,7 @@ callback_buffer_request( int             device_num,
                          size_t*         bytes )
 {
 #if HAVE( OMPT_GET_BUFFER_LIMITS )
-    device_t* device = devices[ device_num ];
+    device_t* device = get_devices()[ device_num ];
     *bytes  = device->recommended_buffer_size;
     *buffer = ::operator new( *bytes );
     device->allocated_buffers++;
@@ -1540,6 +1540,7 @@ callback_buffer_request( int             device_num,
     *buffer = new ompt_record_ompt_t[ buffer_size ];
     *bytes  = buffer_size * record_size;
 #endif
+#endif
 
     if constexpr ( mode == printf_mode::callback )
     {
@@ -1547,6 +1548,7 @@ callback_buffer_request( int             device_num,
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
+#if HAVE( OMPT_GET_BUFFER_LIMITS )
 #if HAVE( OMPT_GET_BUFFER_LIMITS )
         atomic_printf( "[%s] device_num = %d | buffer = %p (%d/%d) | bytes = %lu\n",
                        __FUNCTION__,
@@ -1561,6 +1563,7 @@ callback_buffer_request( int             device_num,
                        device_num,
                        buffer,
                        *bytes );
+#endif
 #endif
     }
 }
@@ -1614,18 +1617,18 @@ callback_buffer_complete( int                  device_num,
                  ompt_id_t target_id; */
             switch ( record->type )
             {
-                #if HAVE( OMPT_CALLBACK_TARGET )
+#if HAVE( OMPT_CALLBACK_TARGET )
                 case ompt_callback_target:
-                #endif
-                #if HAVE( OMPT_CALLBACK_TARGET_EMI )
+#endif
+#if HAVE( OMPT_CALLBACK_TARGET_EMI )
                 case ompt_callback_target_emi:
-                #endif
+#endif
                 {
-                    #if HAVE( OMPT_RECORD_TARGET_EMI )
+#if HAVE( OMPT_RECORD_TARGET_EMI )
                     ompt_record_target_emi_t target = record->record.target_emi;
-                    #elif HAVE( OMPT_RECORD_TARGET )
+#elif HAVE( OMPT_RECORD_TARGET )
                     ompt_record_target_t target = record->record.target;
-                    #endif
+#endif
                     atomic_printf( "[%s] time = %lu | thread_id = %lu | target_id = %lu | kind = %s | "
                                    "endpoint = %s | device_num = %d | task_id = %lu | target_id = %lu | codeptr_ra = %p\n",
                                    __FUNCTION__,
@@ -1640,18 +1643,18 @@ callback_buffer_complete( int                  device_num,
                                    target.codeptr_ra );
                     break;
                 }
-                #if HAVE( OMPT_CALLBACK_TARGET_DATA_OP )
+#if HAVE( OMPT_CALLBACK_TARGET_DATA_OP )
                 case ompt_callback_target_data_op:
-                #endif
-                #if HAVE( OMPT_CALLBACK_TARGET_DATA_OP_EMI )
+#endif
+#if HAVE( OMPT_CALLBACK_TARGET_DATA_OP_EMI )
                 case ompt_callback_target_data_op_emi:
-                #endif
+#endif
                 {
-                    #if HAVE( OMPT_RECORD_TARGET_DATA_OP_EMI )
+#if HAVE( OMPT_RECORD_TARGET_DATA_OP_EMI )
                     ompt_record_target_data_op_emi_t data_op = record->record.target_data_op_emi;
-                    #elif HAVE( OMPT_RECORD_TARGET_DATA_OP )
+#elif HAVE( OMPT_RECORD_TARGET_DATA_OP )
                     ompt_record_target_data_op_t data_op = record->record.target_data_op;
-                    #endif
+#endif
                     atomic_printf( "[%s] time = %lu | thread_id = %lu | target_id = %lu | host_op_id = %lu | "
                                    "optype = %s | src_addr = %p | src_device_num = %d | dest_addr = %p | "
                                    "dest_device_num = %d | bytes = %lu | end_time = %lu | codeptr_ra = %p\n",
@@ -1670,18 +1673,18 @@ callback_buffer_complete( int                  device_num,
                                    data_op.codeptr_ra );
                     break;
                 }
-                #if HAVE( OMPT_CALLBACK_TARGET_MAP )
+#if HAVE( OMPT_CALLBACK_TARGET_MAP )
                 case ompt_callback_target_map:
-                #endif
-                #if HAVE( OMPT_CALLBACK_TARGET_MAP_EMI )
+#endif
+#if HAVE( OMPT_CALLBACK_TARGET_MAP_EMI )
                 case ompt_callback_target_map_emi:
-                #endif
+#endif
                 {
-                    #if HAVE( OMPT_RECORD_TARGET_MAP_EMI )
+#if HAVE( OMPT_RECORD_TARGET_MAP_EMI )
                     ompt_record_target_map_emi_t map = record->record.target_map_emi;
-                    #elif HAVE( OMPT_RECORD_TARGET_MAP )
+#elif HAVE( OMPT_RECORD_TARGET_MAP )
                     ompt_record_target_map_t map = record->record.target_map;
-                    #endif
+#endif
                     atomic_printf( "[%s] time = %lu | thread_id = %lu | target_id = %lu | target_id = %lu | "
                                    "nitems = %u | codeptr_ra = %p\n",
                                    __FUNCTION__,
@@ -1707,18 +1710,18 @@ callback_buffer_complete( int                  device_num,
                     }
                     break;
                 }
-                #if HAVE( OMPT_CALLBACK_TARGET_SUBMIT )
+#if HAVE( OMPT_CALLBACK_TARGET_SUBMIT )
                 case ompt_callback_target_submit:
-                #endif
-                #if HAVE( OMPT_CALLBACK_TARGET_SUBMIT_EMI )
+#endif
+#if HAVE( OMPT_CALLBACK_TARGET_SUBMIT_EMI )
                 case ompt_callback_target_submit_emi:
-                #endif
+#endif
                 {
-                    #if HAVE( OMPT_RECORD_TARGET_SUBMIT_EMI )
+#if HAVE( OMPT_RECORD_TARGET_SUBMIT_EMI )
                     ompt_record_target_submit_emi_t kernel = record->record.target_submit_emi;
-                    #elif HAVE( OMPT_RECORD_TARGET_KERNEL )
+#elif HAVE( OMPT_RECORD_TARGET_KERNEL )
                     ompt_record_target_kernel_t kernel = record->record.target_kernel;
-                    #endif
+#endif
                     atomic_printf( "[%s] time = %lu | thread_id = %lu | target_id = %lu | host_op_id = %lu | "
                                    "requested_num_teams = %u | granted_num_teams = %u | end_time = %lu\n",
                                    __FUNCTION__,
@@ -1744,9 +1747,9 @@ callback_buffer_complete( int                  device_num,
 
     if ( buffer_owned )
     {
-        #if HAVE( OMPT_GET_BUFFER_LIMITS )
-        devices[ device_num ]->allocated_buffers--;
-        #endif
+#if HAVE( OMPT_GET_BUFFER_LIMITS )
+        get_devices()[ device_num ]->allocated_buffers--;
+#endif
         delete[] ( ompt_record_ompt_t* )buffer;
     }
 }
@@ -1779,15 +1782,14 @@ callback_device_initialize( int                    device_num,
     devices[ device_num ] = new_device;
     if ( lookup )
     {
-#define LOOKUP_DEVICE_FUNCTION( name ) \
-    do \
-    { \
-        new_device->device_functions.name = ( ompt_##name##_t )lookup( "ompt_" #name ); \
-        if ( !new_device->device_functions.name ) \
-        { \
-            if constexpr ( mode > printf_mode::disable_output ) \
-            { \
-                atomic_printf( "[%s] device_num = %d | %s not found\n", __FUNCTION__, device_num, #name ); \
+ #define LOOKUP_DEVICE_FUNCTION( name ) \
+    do { \
+        new_device->device_functions.name = \
+            ( ompt_##name##_t )lookup( "ompt_" #name ); \
+        if ( !new_device->device_functions.name ) { \
+            if constexpr ( mode > printf_mode::disable_output ) { \
+                atomic_printf( "[%s] device_num = %d | %s not found\n", __FUNCTION__, \
+                               device_num, #name ); \
             } \
             return; \
         } \
@@ -1805,17 +1807,17 @@ callback_device_initialize( int                    device_num,
         /* Optional functions */
         new_device->device_functions.stop_trace  = ( ompt_stop_trace_t )lookup( "ompt_stop_trace" );
         new_device->device_functions.pause_trace = ( ompt_pause_trace_t )lookup( "ompt_pause_trace" );
-        #if HAVE( OMPT_GET_BUFFER_LIMITS )
+#if HAVE( OMPT_GET_BUFFER_LIMITS )
         new_device->device_functions.get_buffer_limits = ( ompt_get_buffer_limits_t )lookup( "ompt_get_buffer_limits" );
         new_device->device_functions.get_buffer_limits( new_device->address, &new_device->recommended_buffer_amount, &new_device->recommended_buffer_size );
-        #endif
+#endif
 
         /* Register buffer events */
         ompt_set_result_t result;
         bool              registration_success = false;
 
         /* ompt_callback_target[_emi] */
-        #if HAVE( OMPT_CALLBACK_TARGET_EMI )
+#if HAVE( OMPT_CALLBACK_TARGET_EMI )
         result               = new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target_emi );
         registration_success = result == ompt_set_always;
         if constexpr ( mode > printf_mode::disable_output )
@@ -1825,8 +1827,8 @@ callback_device_initialize( int                    device_num,
                            device_num,
                            set_result2string( result ).c_str() );
         }
-        #endif
-        #if HAVE( OMPT_CALLBACK_TARGET )
+#endif
+#if HAVE( OMPT_CALLBACK_TARGET )
         if ( !registration_success )
         {
             result = new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target );
@@ -1837,10 +1839,10 @@ callback_device_initialize( int                    device_num,
                                set_result2string( result ).c_str() );
             }
         }
-        #endif
+#endif
         /* ompt_callback_target_data_op[_emi] */
         registration_success = false;
-        #if HAVE( OMPT_CALLBACK_TARGET_DATA_OP_EMI )
+#if HAVE( OMPT_CALLBACK_TARGET_DATA_OP_EMI )
         result               = new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target_data_op_emi );
         registration_success = result == ompt_set_always;
         if constexpr ( mode > printf_mode::disable_output )
@@ -1850,8 +1852,8 @@ callback_device_initialize( int                    device_num,
                            device_num,
                            set_result2string( result ).c_str() );
         }
-        #endif
-        #if HAVE( OMPT_CALLBACK_TARGET_DATA_OP )
+#endif
+#if HAVE( OMPT_CALLBACK_TARGET_DATA_OP )
         if ( !registration_success )
         {
             result = new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target_data_op );
@@ -1865,11 +1867,11 @@ callback_device_initialize( int                    device_num,
                 }
             }
         }
-        #endif
+#endif
 
         /* ompt_callback_target_map[_emi] */
         registration_success = false;
-        #if HAVE( OMPT_CALLBACK_TARGET_MAP_EMI )
+#if HAVE( OMPT_CALLBACK_TARGET_MAP_EMI )
         result               = new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target_map_emi );
         registration_success = result == ompt_set_always;
         if constexpr ( mode > printf_mode::disable_output )
@@ -1879,8 +1881,8 @@ callback_device_initialize( int                    device_num,
                            device_num,
                            set_result2string( result ).c_str() );
         }
-        #endif
-        #if HAVE( OMPT_CALLBACK_TARGET_MAP )
+#endif
+#if HAVE( OMPT_CALLBACK_TARGET_MAP )
         if ( !registration_success )
         {
             result = new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target_map );
@@ -1891,11 +1893,11 @@ callback_device_initialize( int                    device_num,
                                set_result2string( result ).c_str() );
             }
         }
-        #endif
+#endif
 
         /* ompt_callback_target_submit[_emi] */
         registration_success = false;
-        #if HAVE( OMPT_CALLBACK_TARGET_SUBMIT_EMI )
+#if HAVE( OMPT_CALLBACK_TARGET_SUBMIT_EMI )
         result               = new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target_submit_emi );
         registration_success = result == ompt_set_always;
         if constexpr ( mode > printf_mode::disable_output )
@@ -1905,8 +1907,8 @@ callback_device_initialize( int                    device_num,
                            device_num,
                            set_result2string( result ).c_str() );
         }
-        #endif
-        #if HAVE( OMPT_CALLBACK_TARGET_SUBMIT )
+#endif
+#if HAVE( OMPT_CALLBACK_TARGET_SUBMIT )
         if ( !registration_success )
         {
             result = new_device->device_functions.set_trace_ompt( new_device->address, true,
@@ -1918,7 +1920,7 @@ callback_device_initialize( int                    device_num,
                                set_result2string( result ).c_str() );
             }
         }
-        #endif
+#endif
 
         if ( !new_device->device_functions.start_trace( new_device->address, &callback_buffer_request<mode>, &callback_buffer_complete<mode> ) )
         {
@@ -2246,12 +2248,12 @@ callback_target_data_op_emi( ompt_scope_endpoint_t endpoint,
                        codeptr_ra );
         if (
             false
-            #if HAVE( OMPT_TARGET_DATA_TRANSFER_RECT )
+#if HAVE( OMPT_TARGET_DATA_TRANSFER_RECT )
             || optype == ompt_target_data_transfer_rect
-            #endif
-            #if HAVE( OMPT_TARGET_DATA_TRANSFER_RECT_ASYNC )
+#endif
+#if HAVE( OMPT_TARGET_DATA_TRANSFER_RECT_ASYNC )
             || optype == ompt_target_data_transfer_rect_async
-            #endif
+#endif
             )
         {
             /* typedef struct ompt_subvolume_t { // ADDED_60
@@ -2262,7 +2264,7 @@ callback_target_data_op_emi( ompt_scope_endpoint_t endpoint,
              * const uint64_t *offsets;
              * const uint64_t *dimensions;
              * } ompt_subvolume_t; */
-            #if HAVE( OMPT_SUBVOLUME )
+#if HAVE( OMPT_SUBVOLUME )
             ompt_subvolume_t* subvolume_src  = ( ompt_subvolume_t* )dev1_addr;
             ompt_subvolume_t* subvolume_dest = ( ompt_subvolume_t* )dev2_addr;
 
@@ -2307,7 +2309,7 @@ callback_target_data_op_emi( ompt_scope_endpoint_t endpoint,
                                i,
                                subvolume_dest->dimensions[ i ] );
             }
-            #endif
+#endif
         }
     }
 }
@@ -2509,8 +2511,8 @@ tool_initialize( ompt_function_lookup_t lookup,
      * } ompt_callbacks_t; */
 
     /* Register callbacks for the host side */
-#define CALLBACK( name )                                                       \
-    {                                                                          \
+ #define CALLBACK( name ) \
+    { \
         ompt_callback_##name, ( ompt_callback_t )&callback_##name<mode>, #name \
     }
 
@@ -2566,9 +2568,9 @@ tool_initialize( ompt_function_lookup_t lookup,
         CALLBACK( dependences ),
         CALLBACK( task_dependence ),
         CALLBACK( work ),
-        #if HAVE( OMPT_CALLBACK_MASKED )
+#if HAVE( OMPT_CALLBACK_MASKED )
         CALLBACK( masked ),
-        #endif
+#endif
         CALLBACK( sync_region ),
         CALLBACK( lock_init ),
         CALLBACK( lock_destroy ),
@@ -2593,42 +2595,42 @@ tool_initialize( ompt_function_lookup_t lookup,
     register_all_callbacks( host_accel_callbacks );
 
     const std::initializer_list<registration_data_t> host_accel_target = {
-        #if HAVE( OMPT_CALLBACK_TARGET_EMI )
+#if HAVE( OMPT_CALLBACK_TARGET_EMI )
         CALLBACK( target_emi ),
-        #endif
-        #if HAVE( OMPT_CALLBACK_TARGET )
+#endif
+#if HAVE( OMPT_CALLBACK_TARGET )
         CALLBACK( target ),
-        #endif
+#endif
     };
     register_callbacks_break_on_success( host_accel_target );
 
     const std::initializer_list<registration_data_t> host_accel_target_map = {
-        #if HAVE( OMPT_CALLBACK_TARGET_MAP_EMI )
+#if HAVE( OMPT_CALLBACK_TARGET_MAP_EMI )
         CALLBACK( target_map_emi ),
-        #endif
-        #if HAVE( OMPT_CALLBACK_TARGET_MAP )
+#endif
+#if HAVE( OMPT_CALLBACK_TARGET_MAP )
         CALLBACK( target_map ),
-        #endif
+#endif
     };
     register_callbacks_break_on_success( host_accel_target_map );
 
     const std::initializer_list<registration_data_t> host_accel_target_data_op = {
-        #if HAVE( OMPT_CALLBACK_TARGET_DATA_OP_EMI )
+#if HAVE( OMPT_CALLBACK_TARGET_DATA_OP_EMI )
         CALLBACK( target_data_op_emi ),
-        #endif
-        #if HAVE( OMPT_CALLBACK_TARGET_DATA_OP )
+#endif
+#if HAVE( OMPT_CALLBACK_TARGET_DATA_OP )
         CALLBACK( target_data_op ),
-        #endif
+#endif
     };
     register_callbacks_break_on_success( host_accel_target_data_op );
 
     const std::initializer_list<registration_data_t> host_accel_target_submit = {
-        #if HAVE( OMPT_CALLBACK_TARGET_SUBMIT_EMI )
+#if HAVE( OMPT_CALLBACK_TARGET_SUBMIT_EMI )
         CALLBACK( target_submit_emi ),
-        #endif
-        #if HAVE( OMPT_CALLBACK_TARGET_SUBMIT )
+#endif
+#if HAVE( OMPT_CALLBACK_TARGET_SUBMIT )
         CALLBACK( target_submit )
-        #endif
+#endif
     };
     register_callbacks_break_on_success( host_accel_target_submit );
 
