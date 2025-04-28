@@ -143,9 +143,9 @@ jobs:
             - uses: ./.github/actions/build-and-test-ompt-printf
               with:
                 compiler-toolchain: Clang
-    job_fedora-40-clang:
+    job_fedora-42-clang:
         runs-on: ubuntu-latest
-        container: fedora:40
+        container: fedora:42
         steps:
           - uses: actions/checkout@v4
           - run: dnf update -y
@@ -153,9 +153,9 @@ jobs:
           - uses: ./.github/actions/build-and-test-ompt-printf
             with:
               compiler-toolchain: Clang   
-    job_fedora-39-clang:    
+    job_fedora-41-clang:    
         runs-on: ubuntu-latest
-        container: fedora:39  
+        container: fedora:41
         steps:
             - uses: actions/checkout@v4
             - run: dnf update -y
@@ -194,9 +194,9 @@ jobs:
           - uses: ./.github/actions/build-and-test-ompt-printf
             with:
               compiler-toolchain: Clang
-    job_intel-oneapi-2024-2-0:
+    job_intel-oneapi-2025-1-0:
         runs-on: ubuntu-latest
-        container: intel/oneapi:2024.2.0-1-devel-ubuntu22.04
+        container: intel/oneapi:2025.1.0-0-devel-ubuntu24.04
         steps:
           - uses: actions/checkout@v4
           - run: rm -f /etc/apt/sources.list.d/oneAPI.list /etc/apt/sources.list.d/intel-graphics.list
@@ -205,9 +205,9 @@ jobs:
           - uses: ./.github/actions/build-and-test-ompt-printf
             with:
               compiler-toolchain: oneAPI
-    job_intel-oneapi-2024-1-0:
+    job_intel-oneapi-2025-0-2:
         runs-on: ubuntu-latest
-        container: intel/oneapi:2024.1.0-devel-ubuntu22.04
+        container: intel/oneapi:2025.0.2-0-devel-ubuntu24.04
         steps:
           - uses: actions/checkout@v4
           - run: rm -f /etc/apt/sources.list.d/oneAPI.list /etc/apt/sources.list.d/intel-graphics.list
@@ -216,9 +216,9 @@ jobs:
           - uses: ./.github/actions/build-and-test-ompt-printf
             with:
               compiler-toolchain: oneAPI
-    job_intel-oneapi-2024-0-0:
+    job_intel-oneapi-2024-2-1:
         runs-on: ubuntu-latest
-        container: intel/oneapi:2024.0.0-devel-ubuntu22.04
+        container: intel/oneapi:2024.2.1-0-devel-ubuntu22.04
         steps:
           - uses: actions/checkout@v4
           - run: rm -f /etc/apt/sources.list.d/oneAPI.list /etc/apt/sources.list.d/intel-graphics.list
@@ -258,31 +258,31 @@ jobs:
 #           - uses: ./.github/actions/build-and-test-ompt-printf
 #             with:
 #               compiler-toolchain: NVHPC
+    job_rocm-6-4:
+        runs-on: ubuntu-latest
+        container: rocm/dev-ubuntu-22.04:6.4
+        steps:
+          - uses: actions/checkout@v4
+          - run: apt-get update -y
+          - run: apt-get install -y cmake
+          - uses: ./.github/actions/build-and-test-ompt-printf
+            with:
+              compiler-toolchain: AMDClang
+              extra-path: /opt/rocm/bin
+    job_rocm-6-3:
+        runs-on: ubuntu-latest
+        container: rocm/dev-ubuntu-22.04:6.3.4
+        steps:
+          - uses: actions/checkout@v4
+          - run: apt-get update -y
+          - run: apt-get install -y cmake
+          - uses: ./.github/actions/build-and-test-ompt-printf
+            with:
+              compiler-toolchain: AMDClang
+              extra-path: /opt/rocm/bin
     job_rocm-6-2:
         runs-on: ubuntu-latest
-        container: rocm/dev-ubuntu-22.04:6.2
-        steps:
-          - uses: actions/checkout@v4
-          - run: apt-get update -y
-          - run: apt-get install -y cmake
-          - uses: ./.github/actions/build-and-test-ompt-printf
-            with:
-              compiler-toolchain: AMDClang
-              extra-path: /opt/rocm/bin
-    job_rocm-6-1-2:
-        runs-on: ubuntu-latest
-        container: rocm/dev-ubuntu-22.04:6.1.2
-        steps:
-          - uses: actions/checkout@v4
-          - run: apt-get update -y
-          - run: apt-get install -y cmake
-          - uses: ./.github/actions/build-and-test-ompt-printf
-            with:
-              compiler-toolchain: AMDClang
-              extra-path: /opt/rocm/bin
-    job_rocm-6-0-2:
-        runs-on: ubuntu-latest
-        container: rocm/dev-ubuntu-22.04:6.0.2
+        container: rocm/dev-ubuntu-22.04:6.2.4
         steps:
           - uses: actions/checkout@v4
           - run: apt-get update -y
@@ -295,7 +295,7 @@ jobs:
         runs-on: ubuntu-latest
         container: ubuntu:24.04
         env:
-          LLVM_DEVELOPMENT_VERSION: 20
+          LLVM_DEVELOPMENT_VERSION: 21
         steps:
           - uses: actions/checkout@v4
           - run: apt-get update
