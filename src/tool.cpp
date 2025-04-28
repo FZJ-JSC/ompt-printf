@@ -108,7 +108,16 @@ typedef struct device_t
 #endif
 } device_t;
 
-static std::unordered_map<ompt_id_t, device_t*> devices;
+static std::unordered_map<ompt_id_t, device_t*>&
+get_devices()
+{
+    static std::unordered_map<ompt_id_t, device_t*>* d = NULL;
+    if ( d == NULL )
+    {
+        d = new std::unordered_map<ompt_id_t, device_t*>;
+    }
+    return *d;
+}
 
 /* printf conversion output */
 
@@ -1522,11 +1531,10 @@ callback_dispatch( ompt_data_t*    parallel_data,
  * } ompt_record_ompt_t;
  * */
 
-template<printf_mode mode>
+template <printf_mode mode>
 void
-callback_buffer_request( int             device_num,
-                         ompt_buffer_t** buffer,
-                         size_t*         bytes )
+callback_buffer_request( int device_num, ompt_buffer_t** buffer,
+                         size_t* bytes )
 {
 #if HAVE( OMPT_GET_BUFFER_LIMITS )
     device_t* device = get_devices()[ device_num ];
@@ -1539,7 +1547,6 @@ callback_buffer_request( int             device_num,
 
     *buffer = new ompt_record_ompt_t[ buffer_size ];
     *bytes  = buffer_size * record_size;
-#endif
 #endif
 
     if constexpr ( mode == printf_mode::callback )
@@ -1604,8 +1611,8 @@ callback_buffer_complete( int                  device_num,
         return;
     }
 
-    auto device = devices.find( device_num );
-    assert( device != devices.end() && "Device not found" );
+    auto device = get_devices().find( device_num );
+    assert( device != get_devices().end() && "Device not found" );
     auto current_cursor = begin;
     do
     {
@@ -1777,12 +1784,13 @@ callback_device_initialize( int                    device_num,
                        documentation );
     }
 
-    assert( devices.find( device_num ) == devices.end() && "Device already initialized" );
+    assert( get_devices().find( device_num ) == get_devices().end() &&
+            "Device already initialized" );
     auto* new_device = new device_t { .address = device, .name = type };
-    devices[ device_num ] = new_device;
+    get_devices()[ device_num ] = new_device;
     if ( lookup )
     {
- #define LOOKUP_DEVICE_FUNCTION( name ) \
+#define LOOKUP_DEVICE_FUNCTION( name ) \
     do { \
         new_device->device_functions.name = \
             ( ompt_##name##_t )lookup( "ompt_" #name ); \
@@ -1944,19 +1952,19 @@ callback_device_finalize( int device_num )
                        device_num );
     }
 
-    if ( devices.find( device_num ) == devices.end() )
+    if ( get_devices().find( device_num ) == get_devices().end() )
     {
         if constexpr ( mode > printf_mode::disable_output )
         {
             atomic_printf( "[%s] Device %d not found. Number of devices: %d. "
                            "The runtime may have already cleaned up some state. Skip flushing buffers.\n",
                            __FUNCTION__,
-                           devices.size(),
+                           get_devices().size(),
                            device_num );
         }
         return;
     }
-    auto* finalized_device = devices[ device_num ];
+    auto* finalized_device = get_devices()[ device_num ];
     if ( finalized_device->device_functions.flush_trace )
     {
         finalized_device->device_functions.flush_trace( finalized_device->address );
@@ -1969,7 +1977,7 @@ callback_device_finalize( int device_num )
     {
         finalized_device->device_functions.stop_trace( finalized_device->address );
     }
-    devices.erase( device_num );
+    get_devices().erase( device_num );
     delete finalized_device;
 }
 
@@ -2207,10 +2215,10 @@ callback_target_data_op_emi( ompt_scope_endpoint_t endpoint,
                              ompt_data_t*          target_data,
                              ompt_id_t*            host_op_id,
                              ompt_target_data_op_t optype,
-                             void*                 src_addr,        // CHANGED_60: dev1_addr
-                             int                   src_device_num,  // CHANGED_60: dev1_device_num
-                             void*                 dest_addr,       // CHANGED_60: dev2_addr
-                             int                   dest_device_num, // CHANGED_60: dev2_device_num
+                             void*                 src_addr,         // CHANGED_60: dev1_addr
+                             int                   src_device_num,   // CHANGED_60: dev1_device_num
+                             void*                 dest_addr,        // CHANGED_60: dev2_addr
+                             int                   dest_device_num,  // CHANGED_60: dev2_device_num
                              size_t                bytes,
                              const void*           codeptr_ra )
 {
@@ -2394,20 +2402,20 @@ callback_control_tool( uint64_t    command,
     {
         case omp_control_tool_start:
         {
-            for ( auto device : devices )
+            for ( auto device : get_devices() )
             {
                 if ( device.second->device_functions.start_trace )
                 {
-                    device.second->device_functions.start_trace( device.second->address,
-                                                                 callback_buffer_request<mode>,
-                                                                 callback_buffer_complete<mode> );
+                    device.second->device_functions.start_trace(
+                        device.second->address, callback_buffer_request<mode>,
+                        callback_buffer_complete<mode>);
                 }
             }
             return omp_control_tool_success;
         }
         case omp_control_tool_flush:
         {
-            for ( auto device : devices )
+            for ( auto device : get_devices() )
             {
                 if ( device.second->device_functions.flush_trace )
                 {
@@ -2418,17 +2426,18 @@ callback_control_tool( uint64_t    command,
         }
         case omp_control_tool_pause:
         {
-            for ( auto device : devices )
+            for ( auto device : get_devices() )
             {
                 if ( device.second->device_functions.pause_trace )
                 {
-                    device.second->device_functions.pause_trace( device.second->address, static_cast<bool>( modifier ) );
+                    device.second->device_functions.pause_trace(
+                        device.second->address, static_cast<bool>( modifier ) );
                 }
             }
         }
         case omp_control_tool_end:
         {
-            for ( auto device : devices )
+            for ( auto device : get_devices() )
             {
                 if ( device.second->device_functions.stop_trace )
                 {
@@ -2511,7 +2520,7 @@ tool_initialize( ompt_function_lookup_t lookup,
      * } ompt_callbacks_t; */
 
     /* Register callbacks for the host side */
- #define CALLBACK( name ) \
+#define CALLBACK( name ) \
     { \
         ompt_callback_##name, ( ompt_callback_t )&callback_##name<mode>, #name \
     }
@@ -2636,7 +2645,7 @@ tool_initialize( ompt_function_lookup_t lookup,
 
 #undef CALLBACK
 
-    return true; /* non-zero indicates success */
+    return true;  /* non-zero indicates success */
 }
 
 template<printf_mode mode>
