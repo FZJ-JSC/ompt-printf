@@ -36,9 +36,9 @@ name: Test on multiple compiler and OS platforms
 
 on:
     push:
-        branches: [ "main", "openmp-52", "openmp-tr13" ]
+        branches: [ "main", "openmp-52", "openmp-60" ]
     pull_request:
-        branches: [ "main", "openmp-52", "openmp-tr13" ]
+        branches: [ "main", "openmp-52", "openmp-60" ]
 
 jobs:
     job_ubuntu-24-clang:
