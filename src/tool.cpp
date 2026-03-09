@@ -1822,114 +1822,73 @@ callback_device_initialize( int                    device_num,
 
         /* Register buffer events */
         ompt_set_result_t result;
-        bool              registration_success = false;
+        bool              registration_success;
+
+#define ENABLE_DEVICE_TRACING_CALLBACK( CALLBACK_NAME, NEEDS_REGISTRATION_RESULT ) \
+    do { \
+        result = new_device->device_functions.set_trace_ompt( new_device->address, true, CALLBACK_NAME ); \
+        if constexpr ( NEEDS_REGISTRATION_RESULT ) \
+        { \
+            registration_success = result == ompt_set_always; \
+        } \
+        if constexpr ( mode > printf_mode::disable_output ) \
+        { \
+            atomic_printf( "[%s] device_num = %d | %s = %s\n", \
+                           __FUNCTION__, \
+                           device_num, \
+                           #CALLBACK_NAME, \
+                           set_result2string( result ).c_str() ); \
+        } \
+    } while ( 0 )
 
         /* ompt_callback_target[_emi] */
+        registration_success = false;
 #if HAVE( OMPT_CALLBACK_TARGET_EMI )
-        result               = new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target_emi );
-        registration_success = result == ompt_set_always;
-        if constexpr ( mode > printf_mode::disable_output )
-        {
-            atomic_printf( "[%s] device_num = %d | ompt_callback_target_emi = %s\n",
-                           __FUNCTION__,
-                           device_num,
-                           set_result2string( result ).c_str() );
-        }
+        ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_target_emi, true );
 #endif
 #if HAVE( OMPT_CALLBACK_TARGET )
         if ( !registration_success )
         {
-            result = new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target );
-            if constexpr ( mode > printf_mode::disable_output ) {
-                atomic_printf( "[%s] device_num = %d | ompt_callback_target = %s\n",
-                               __FUNCTION__,
-                               device_num,
-                               set_result2string( result ).c_str() );
-            }
+            ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_target, false );
         }
 #endif
         /* ompt_callback_target_data_op[_emi] */
         registration_success = false;
 #if HAVE( OMPT_CALLBACK_TARGET_DATA_OP_EMI )
-        result               = new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target_data_op_emi );
-        registration_success = result == ompt_set_always;
-        if constexpr ( mode > printf_mode::disable_output )
-        {
-            atomic_printf( "[%s] device_num = %d | ompt_callback_target_data_op_emi = %s\n",
-                           __FUNCTION__,
-                           device_num,
-                           set_result2string( result ).c_str() );
-        }
+        ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_target_data_op_emi, true );
 #endif
 #if HAVE( OMPT_CALLBACK_TARGET_DATA_OP )
         if ( !registration_success )
         {
-            result = new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target_data_op );
-            if constexpr ( mode > printf_mode::disable_output ) {
-                if ( result != ompt_set_error )
-                {
-                    atomic_printf( "[%s] device_num = %d | ompt_callback_target_data_op = %s\n",
-                                   __FUNCTION__,
-                                   device_num,
-                                   set_result2string( result ).c_str() );
-                }
-            }
+            ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_target_data_op, false );
         }
 #endif
 
         /* ompt_callback_target_map[_emi] */
         registration_success = false;
 #if HAVE( OMPT_CALLBACK_TARGET_MAP_EMI )
-        result               = new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target_map_emi );
-        registration_success = result == ompt_set_always;
-        if constexpr ( mode > printf_mode::disable_output )
-        {
-            atomic_printf( "[%s] device_num = %d | ompt_callback_target_map_emi = %s\n",
-                           __FUNCTION__,
-                           device_num,
-                           set_result2string( result ).c_str() );
-        }
+        ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_target_map_emi, true );
 #endif
 #if HAVE( OMPT_CALLBACK_TARGET_MAP )
         if ( !registration_success )
         {
-            result = new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target_map );
-            if constexpr ( mode > printf_mode::disable_output ) {
-                atomic_printf( "[%s] device_num = %d | ompt_callback_target_map = %s\n",
-                               __FUNCTION__,
-                               device_num,
-                               set_result2string( result ).c_str() );
-            }
+            ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_target_map, false );
         }
 #endif
 
         /* ompt_callback_target_submit[_emi] */
         registration_success = false;
 #if HAVE( OMPT_CALLBACK_TARGET_SUBMIT_EMI )
-        result               = new_device->device_functions.set_trace_ompt( new_device->address, true, ompt_callback_target_submit_emi );
-        registration_success = result == ompt_set_always;
-        if constexpr ( mode > printf_mode::disable_output )
-        {
-            atomic_printf( "[%s] device_num = %d | ompt_callback_target_submit_emi = %s\n",
-                           __FUNCTION__,
-                           device_num,
-                           set_result2string( result ).c_str() );
-        }
+        ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_target_submit_emi, true );
 #endif
 #if HAVE( OMPT_CALLBACK_TARGET_SUBMIT )
         if ( !registration_success )
         {
-            result = new_device->device_functions.set_trace_ompt( new_device->address, true,
-                                                                  ompt_callback_target_submit );
-            if constexpr ( mode > printf_mode::disable_output ) {
-                atomic_printf( "[%s] device_num = %d | ompt_callback_target_submit = %s\n",
-                               __FUNCTION__,
-                               device_num,
-                               set_result2string( result ).c_str() );
-            }
+            ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_target_submit, false );
         }
 #endif
 
+#undef ENABLE_DEVICE_TRACING_CALLBACK
         if ( !new_device->device_functions.start_trace( new_device->address, &callback_buffer_request<mode>, &callback_buffer_complete<mode> ) )
         {
             return;
