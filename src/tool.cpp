@@ -1586,6 +1586,7 @@ callback_buffer_complete( int                  device_num,
     if constexpr ( mode == printf_mode::callback )
     {
         print_function_name( __FUNCTION__ );
+        return;
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -1596,6 +1597,7 @@ callback_buffer_complete( int                  device_num,
                        bytes,
                        begin,
                        buffer_owned );
+        return;
     }
 
     /* AMD implementation might return buffer complete callback to indicate buffer
