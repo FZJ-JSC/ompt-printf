@@ -1888,6 +1888,29 @@ callback_device_initialize( int                    device_num,
         }
 #endif
 
+        /* Host side callbacks */
+        ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_thread_begin, false );
+        /* OpenMP 6.0, p.728, l.16: If type is ompt_callback_thread_end then the value of record is undefined. */
+        // ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_thread_end, false );
+        ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_parallel_begin, false );
+        ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_parallel_end, false );
+        ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_work, false );
+        ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_dispatch, false );
+        ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_task_create, false );
+        ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_dependences, false );
+        ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_task_schedule, false );
+        ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_implicit_task, false );
+        ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_masked, false );
+        ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_sync_region, false );
+        ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_mutex_acquire, false );
+        ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_mutex_acquired, false );
+        ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_mutex_released, false );
+        ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_nest_lock, false );
+        ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_flush, false );
+        ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_cancel, false );
+        ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_control_tool, false );
+        ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_error, false );
+
 #undef ENABLE_DEVICE_TRACING_CALLBACK
         if ( !new_device->device_functions.start_trace( new_device->address, &callback_buffer_request<mode>, &callback_buffer_complete<mode> ) )
         {
