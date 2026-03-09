@@ -1575,6 +1575,315 @@ callback_buffer_request( int device_num, ompt_buffer_t** buffer,
     }
 }
 
+void
+device_tracing_thread_begin( const char* invoker, const ompt_record_ompt_t* record )
+{
+    atomic_printf(
+        "[%s] type = thread_begin | time = %lu | thread_id = %lu | target_id = %lu | thread_type = %s\n",
+        invoker,
+        record->time,
+        record->thread_id,
+        record->target_id,
+        thread2string( record->record.thread_begin.thread_type ).c_str()
+        );
+}
+
+void
+device_tracing_parallel_begin( const char* invoker, const ompt_record_ompt_t* record )
+{
+    atomic_printf(
+        "[%s] type = parallel_begin | time = %lu | thread_id = %lu | target_id = %lu | "
+        "encountering_task_id = %lu | parallel_id = %lu | "
+        "requested_parallelism = %lu | flags = %s | codeptr_ra = %p\n",
+        invoker,
+        record->time,
+        record->thread_id,
+        record->target_id,
+        record->record.parallel_begin.encountering_task_id,
+        record->record.parallel_begin.parallel_id,
+        record->record.parallel_begin.requested_parallelism,
+        parallel_flag2string( record->record.parallel_begin.flags ).c_str(),
+        record->record.parallel_begin.codeptr_ra
+        );
+}
+
+void
+device_tracing_parallel_end( const char* invoker, const ompt_record_ompt_t* record )
+{
+    atomic_printf(
+        "[%s] type = parallel_end | time = %lu | thread_id = %lu | target_id = %lu | "
+        "encountering_task_id = %lu | parallel_id = %lu | flags = %s | codeptr_ra = %p\n",
+        invoker,
+        record->time,
+        record->thread_id,
+        record->target_id,
+        record->record.parallel_end.encountering_task_id,
+        record->record.parallel_end.parallel_id,
+        parallel_flag2string( record->record.parallel_end.flags ).c_str(),
+        record->record.parallel_end.codeptr_ra
+        );
+}
+
+void
+device_tracing_work( const char* invoker, const ompt_record_ompt_t* record )
+{
+    atomic_printf(
+        "[%s] type = work | time = %lu | thread_id = %lu | target_id = %lu | "
+        "work_type = %s | endpoint = %s | parallel_id = %lu | task_id = %lu | count = %lu | "
+        "codeptr_ra = %p\n",
+        invoker,
+        record->time,
+        record->thread_id,
+        record->target_id,
+        work2string( record->record.work.work_type ).c_str(),
+        endpoint2string( record->record.work.endpoint ).c_str(),
+        record->record.work.parallel_id,
+        record->record.work.task_id,
+        record->record.work.count,
+        record->record.work.codeptr_ra
+        );
+}
+
+void
+device_tracing_dispatch( const char* invoker, const ompt_record_ompt_t* record )
+{
+    atomic_printf(
+        "[%s] type = dispatch | time = %lu | thread_id = %lu | target_id = %lu | "
+        "parallel_id = %lu | task_id = %lu | kind = %s | instance = %lu\n",
+        invoker,
+        record->time,
+        record->thread_id,
+        record->target_id,
+        record->record.dispatch.parallel_id,
+        record->record.dispatch.task_id,
+        dispatch2string( record->record.dispatch.kind ).c_str(),
+        record->record.dispatch.instance.value
+        );
+}
+
+void
+device_tracing_task_create( const char* invoker, const ompt_record_ompt_t* record )
+{
+    atomic_printf(
+        "[%s] type = task_create | time = %lu | thread_id = %lu | target_id = %lu | "
+        "encountering_task_id = %lu | new_task_id = %lu | flags = %s | has_dependences = %d | codeptr = %p\n",
+        invoker,
+        record->time,
+        record->thread_id,
+        record->target_id,
+        record->record.task_create.encountering_task_id,
+        record->record.task_create.new_task_id,
+        task_flag2string( record->record.task_create.flags ).c_str(),
+        record->record.task_create.has_dependences,
+        record->record.task_create.codeptr_ra
+        );
+}
+
+void
+device_tracing_dependences( const char* invoker, const ompt_record_ompt_t* record )
+{
+    atomic_printf(
+        "[%s] type = dependences | time = %lu | thread_id = %lu | target_id = %lu | "
+        "task_id = %lu | dep.variable.value = %lu | dep.dependence_type = %s | ndeps = %lu\n",
+        invoker,
+        record->time,
+        record->thread_id,
+        record->target_id,
+        record->record.dependences.task_id,
+        record->record.dependences.dep.variable.value,
+        dependence_type2string( record->record.dependences.dep.dependence_type ).c_str(),
+        record->record.dependences.ndeps
+        );
+}
+
+void
+device_tracing_task_schedule( const char* invoker, const ompt_record_ompt_t* record )
+{
+    atomic_printf(
+        "[%s] type = task_schedule | time = %lu | thread_id = %lu | target_id = %lu | "
+        "prior_task_id = %lu | prior_task_status = %s | next_task_id = %lu\n",
+        invoker,
+        record->time,
+        record->thread_id,
+        record->target_id,
+        record->record.task_schedule.prior_task_id,
+        task_status2string( record->record.task_schedule.prior_task_status ).c_str(),
+        record->record.task_schedule.next_task_id
+        );
+}
+
+void
+device_tracing_implicit_task( const char* invoker, const ompt_record_ompt_t* record )
+{
+    atomic_printf(
+        "[%s] type = implicit_task | time = %lu | thread_id = %lu | target_id = %lu | "
+        "endpoint = %s | parallel_id = %lu | task_id = %lu | actual_parallelism = %u | index = %u | flags = %s\n",
+        invoker,
+        record->time,
+        record->thread_id,
+        record->target_id,
+        endpoint2string( record->record.implicit_task.endpoint ).c_str(),
+        record->record.implicit_task.parallel_id,
+        record->record.implicit_task.task_id,
+        record->record.implicit_task.actual_parallelism,
+        record->record.implicit_task.index,
+        task_flag2string( record->record.implicit_task.flags ).c_str()
+        );
+}
+
+void
+device_tracing_masked( const char* invoker, const ompt_record_ompt_t* record )
+{
+    atomic_printf(
+        "[%s] type = masked | time = %lu | thread_id = %lu | target_id = %lu | "
+        "endpoint = %s | parallel_id = %lu | task_id = %lu | codeptr_ra = %p\n",
+        invoker,
+        record->time,
+        record->thread_id,
+        record->target_id,
+        endpoint2string( record->record.masked.endpoint ).c_str(),
+        record->record.masked.parallel_id,
+        record->record.masked.task_id,
+        record->record.masked.codeptr_ra
+        );
+}
+
+void
+device_tracing_sync_region( const char* invoker, const ompt_record_ompt_t* record )
+{
+    atomic_printf(
+        "[%s] type = sync_region | time = %lu | thread_id = %lu | target_id = %lu | "
+        "kind = %s | endpoint = %s | parallel_id = %lu | task_id = %lu | codeptr_ra = %p\n",
+        invoker,
+        record->time,
+        record->thread_id,
+        record->target_id,
+        sync2string( record->record.sync_region.kind ).c_str(),
+        endpoint2string( record->record.sync_region.endpoint ).c_str(),
+        record->record.sync_region.parallel_id,
+        record->record.sync_region.task_id,
+        record->record.sync_region.codeptr_ra
+        );
+}
+
+void
+device_tracing_mutex_acquire( const char* invoker, const ompt_record_ompt_t* record )
+{
+    atomic_printf(
+        "[%s] type = mutex_acquire | time = %lu | thread_id = %lu | target_id = %lu | "
+        "kind = %s | hint = %u | impl = %u | wait_id = %lu | codeptr_ra = %p\n",
+        invoker,
+        record->time,
+        record->thread_id,
+        record->target_id,
+        mutex2string( record->record.mutex_acquire.kind ).c_str(),
+        record->record.mutex_acquire.hint,
+        record->record.mutex_acquire.impl,
+        record->record.mutex_acquire.wait_id,
+        record->record.mutex_acquire.codeptr_ra
+        );
+}
+
+void
+device_tracing_mutex_acquired( const char* invoker, const ompt_record_ompt_t* record )
+{
+    atomic_printf(
+        "[%s] type = mutex_acquired | time = %lu | thread_id = %lu | target_id = %lu | "
+        "kind = %s | wait_id = %lu | codeptr_ra = %p\n",
+        invoker,
+        record->time,
+        record->thread_id,
+        record->target_id,
+        record->record.mutex.kind,
+        record->record.mutex.wait_id,
+        record->record.mutex.codeptr_ra
+        );
+}
+
+void
+device_tracing_mutex_released( const char* invoker, const ompt_record_ompt_t* record )
+{
+    atomic_printf(
+        "[%s] type = mutex_released | time = %lu | thread_id = %lu | target_id = %lu | ",
+        "kind = %s | wait_id = %lu | codeptr_ra = %p\n",
+        invoker,
+        record->time,
+        record->thread_id,
+        record->target_id,
+        record->record.mutex.kind,
+        record->record.mutex.wait_id,
+        record->record.mutex.codeptr_ra
+        );
+}
+
+void
+device_tracing_nest_lock( const char* invoker, const ompt_record_ompt_t* record )
+{
+    atomic_printf(
+        "[%s] type = nest_lock | time = %lu | thread_id = %lu | target_id = %lu | "
+        "endpoint = %s | wait_id = %lu | codeptr_ra = %p\n",
+        invoker,
+        record->time,
+        record->thread_id,
+        record->target_id,
+        endpoint2string( record->record.nest_lock.endpoint ).c_str(),
+        record->record.nest_lock.wait_id,
+        record->record.nest_lock.codeptr_ra
+        );
+}
+
+void
+device_tracing_flush( const char* invoker, const ompt_record_ompt_t* record )
+{
+    atomic_printf(
+        "[%s] type = flush | time = %lu | thread_id = %lu | target_id = %lu | codeptr_ra = %p\n",
+        invoker,
+        record->time,
+        record->thread_id,
+        record->target_id,
+        record->record.flush.codeptr_ra
+        );
+}
+
+void
+device_tracing_cancel( const char* invoker, const ompt_record_ompt_t* record )
+{
+    atomic_printf(
+        "[%s] type = cancel | time = %lu | thread_id = %lu | target_id = %lu | "
+        "task_id = %lu | flags = %s | codeptr_ra = %p\n",
+        invoker,
+        record->time,
+        record->thread_id,
+        record->target_id,
+        record->record.cancel.task_id,
+        cancel2string( record->record.cancel.flags ).c_str(),
+        record->record.cancel.codeptr_ra
+        );
+}
+
+void
+device_tracing_control_tool( const char* invoker, const ompt_record_ompt_t* record )
+{
+    atomic_printf(
+        "[%s] type = control_tool | time = %lu | thread_id = %lu | target_id = %lu | "
+        "command = %lu | modifier = %lu | codeptr_ra = %p\n",
+        invoker,
+        record->time,
+        record->thread_id,
+        record->target_id,
+        record->record.control_tool.command,
+        record->record.control_tool.modifier,
+        record->record.control_tool.codeptr_ra
+        );
+}
+
+void
+device_tracing_error( const char* invoker, const ompt_record_ompt_t* record )
+{
+    // Not implemented by some runtimes, e.g. LLVM 20.1.8. Since it's hard to check
+    // for, ignore until implemented by some runtimes.
+}
+
 template<printf_mode mode>
 void
 callback_buffer_complete( int                  device_num,
@@ -1626,123 +1935,180 @@ callback_buffer_complete( int                  device_num,
                  ompt_id_t target_id; */
             switch ( record->type )
             {
+                case ompt_callback_thread_begin:
+                    device_tracing_thread_begin( __FUNCTION__, record );
+                    break;
+                case ompt_callback_parallel_begin:
+                    device_tracing_parallel_begin( __FUNCTION__, record );
+                    break;
+                case ompt_callback_parallel_end:
+                    device_tracing_parallel_end( __FUNCTION__, record );
+                    break;
+                case ompt_callback_work:
+                    device_tracing_work( __FUNCTION__, record );
+                    break;
+                case ompt_callback_dispatch:
+                    device_tracing_dispatch( __FUNCTION__, record );
+                    break;
+                case ompt_callback_task_create:
+                    device_tracing_task_create( __FUNCTION__, record );
+                    break;
+                case ompt_callback_dependences:
+                    device_tracing_dependences( __FUNCTION__, record );
+                    break;
+                case ompt_callback_task_schedule:
+                    device_tracing_task_schedule( __FUNCTION__, record );
+                    break;
+                case ompt_callback_implicit_task:
+                    device_tracing_implicit_task( __FUNCTION__, record );
+                    break;
+                case ompt_callback_masked:
+                    device_tracing_masked( __FUNCTION__, record );
+                    break;
+                case ompt_callback_sync_region:
+                    device_tracing_sync_region( __FUNCTION__, record );
+                    break;
+                case ompt_callback_mutex_acquire:
+                    device_tracing_mutex_acquire( __FUNCTION__, record );
+                    break;
+                case ompt_callback_mutex_acquired:
+                    device_tracing_mutex_acquired( __FUNCTION__, record );
+                    break;
+                case ompt_callback_mutex_released:
+                    device_tracing_mutex_released( __FUNCTION__, record );
+                    break;
+                case ompt_callback_nest_lock:
+                    device_tracing_nest_lock( __FUNCTION__, record );
+                    break;
+                case ompt_callback_flush:
+                    device_tracing_flush( __FUNCTION__, record );
+                    break;
+                case ompt_callback_cancel:
+                    device_tracing_cancel( __FUNCTION__, record );
+                    break;
+                case ompt_callback_control_tool:
+                    device_tracing_control_tool( __FUNCTION__, record );
+                    break;
+                case ompt_callback_error:
+                    device_tracing_cancel( __FUNCTION__, record );
+                    break;
 #if HAVE( OMPT_CALLBACK_TARGET )
                 case ompt_callback_target:
 #endif
 #if HAVE( OMPT_CALLBACK_TARGET_EMI )
                 case ompt_callback_target_emi:
 #endif
-                {
+                    {
 #if HAVE( OMPT_RECORD_TARGET_EMI )
-                    ompt_record_target_emi_t target = record->record.target_emi;
+                        ompt_record_target_emi_t target = record->record.target_emi;
 #elif HAVE( OMPT_RECORD_TARGET )
-                    ompt_record_target_t target = record->record.target;
+                        ompt_record_target_t target = record->record.target;
 #endif
-                    atomic_printf( "[%s] time = %lu | thread_id = %lu | target_id = %lu | kind = %s | "
-                                   "endpoint = %s | device_num = %d | task_id = %lu | target_id = %lu | codeptr_ra = %p\n",
-                                   __FUNCTION__,
-                                   record->time,
-                                   record->thread_id,
-                                   record->target_id,
-                                   target2string( target.kind ).c_str(),
-                                   endpoint2string( target.endpoint ).c_str(),
-                                   target.device_num,
-                                   target.task_id,
-                                   target.target_id,
-                                   target.codeptr_ra );
-                    break;
-                }
+                        atomic_printf( "[%s] time = %lu | thread_id = %lu | target_id = %lu | kind = %s | "
+                                       "endpoint = %s | device_num = %d | task_id = %lu | target_id = %lu | codeptr_ra = %p\n",
+                                       __FUNCTION__,
+                                       record->time,
+                                       record->thread_id,
+                                       record->target_id,
+                                       target2string( target.kind ).c_str(),
+                                       endpoint2string( target.endpoint ).c_str(),
+                                       target.device_num,
+                                       target.task_id,
+                                       target.target_id,
+                                       target.codeptr_ra );
+                        break;
+                    }
 #if HAVE( OMPT_CALLBACK_TARGET_DATA_OP )
                 case ompt_callback_target_data_op:
 #endif
 #if HAVE( OMPT_CALLBACK_TARGET_DATA_OP_EMI )
                 case ompt_callback_target_data_op_emi:
 #endif
-                {
+                    {
 #if HAVE( OMPT_RECORD_TARGET_DATA_OP_EMI )
-                    ompt_record_target_data_op_emi_t data_op = record->record.target_data_op_emi;
+                        ompt_record_target_data_op_emi_t data_op = record->record.target_data_op_emi;
 #elif HAVE( OMPT_RECORD_TARGET_DATA_OP )
-                    ompt_record_target_data_op_t data_op = record->record.target_data_op;
+                        ompt_record_target_data_op_t data_op = record->record.target_data_op;
 #endif
-                    atomic_printf( "[%s] time = %lu | thread_id = %lu | target_id = %lu | host_op_id = %lu | "
-                                   "optype = %s | src_addr = %p | src_device_num = %d | dest_addr = %p | "
-                                   "dest_device_num = %d | bytes = %lu | end_time = %lu | codeptr_ra = %p\n",
-                                   __FUNCTION__,
-                                   record->time,
-                                   record->thread_id,
-                                   record->target_id,
-                                   data_op.host_op_id,
-                                   data_op2string( data_op.optype ).c_str(),
-                                   data_op.src_addr,
-                                   data_op.src_device_num,
-                                   data_op.dest_addr,
-                                   data_op.dest_device_num,
-                                   data_op.bytes,
-                                   data_op.end_time,
-                                   data_op.codeptr_ra );
-                    break;
-                }
+                        atomic_printf( "[%s] time = %lu | thread_id = %lu | target_id = %lu | host_op_id = %lu | "
+                                       "optype = %s | src_addr = %p | src_device_num = %d | dest_addr = %p | "
+                                       "dest_device_num = %d | bytes = %lu | end_time = %lu | codeptr_ra = %p\n",
+                                       __FUNCTION__,
+                                       record->time,
+                                       record->thread_id,
+                                       record->target_id,
+                                       data_op.host_op_id,
+                                       data_op2string( data_op.optype ).c_str(),
+                                       data_op.src_addr,
+                                       data_op.src_device_num,
+                                       data_op.dest_addr,
+                                       data_op.dest_device_num,
+                                       data_op.bytes,
+                                       data_op.end_time,
+                                       data_op.codeptr_ra );
+                        break;
+                    }
 #if HAVE( OMPT_CALLBACK_TARGET_MAP )
                 case ompt_callback_target_map:
 #endif
 #if HAVE( OMPT_CALLBACK_TARGET_MAP_EMI )
                 case ompt_callback_target_map_emi:
 #endif
-                {
-#if HAVE( OMPT_RECORD_TARGET_MAP_EMI )
-                    ompt_record_target_map_emi_t map = record->record.target_map_emi;
-#elif HAVE( OMPT_RECORD_TARGET_MAP )
-                    ompt_record_target_map_t map = record->record.target_map;
-#endif
-                    atomic_printf( "[%s] time = %lu | thread_id = %lu | target_id = %lu | target_id = %lu | "
-                                   "nitems = %u | codeptr_ra = %p\n",
-                                   __FUNCTION__,
-                                   record->time,
-                                   record->thread_id,
-                                   record->target_id,
-                                   map.target_id,
-                                   map.nitems,
-                                   map.codeptr_ra );
-                    for ( unsigned int i = 0; i < map.nitems; ++i )
                     {
-                        atomic_printf(
-                            "[%s] host_addr[%d] = %p | device_addr[%d] = %p | bytes[%d] = %lu | mapping_flags[%d] = %s\n",
-                            __FUNCTION__,
-                            i,
-                            map.host_addr[ i ],
-                            i,
-                            map.device_addr[ i ],
-                            i,
-                            map.bytes[ i ],
-                            i,
-                            map_flag2string( record->record.target_map.mapping_flags[ i ] ).c_str() );
+#if HAVE( OMPT_RECORD_TARGET_MAP_EMI )
+                        ompt_record_target_map_emi_t map = record->record.target_map_emi;
+#elif HAVE( OMPT_RECORD_TARGET_MAP )
+                        ompt_record_target_map_t map = record->record.target_map;
+#endif
+                        atomic_printf( "[%s] time = %lu | thread_id = %lu | target_id = %lu | target_id = %lu | "
+                                       "nitems = %u | codeptr_ra = %p\n",
+                                       __FUNCTION__,
+                                       record->time,
+                                       record->thread_id,
+                                       record->target_id,
+                                       map.target_id,
+                                       map.nitems,
+                                       map.codeptr_ra );
+                        for ( unsigned int i = 0; i < map.nitems; ++i )
+                        {
+                            atomic_printf(
+                                "[%s] host_addr[%d] = %p | device_addr[%d] = %p | bytes[%d] = %lu | mapping_flags[%d] = %s\n",
+                                __FUNCTION__,
+                                i,
+                                map.host_addr[ i ],
+                                i,
+                                map.device_addr[ i ],
+                                i,
+                                map.bytes[ i ],
+                                i,
+                                map_flag2string( record->record.target_map.mapping_flags[ i ] ).c_str() );
+                        }
+                        break;
                     }
-                    break;
-                }
 #if HAVE( OMPT_CALLBACK_TARGET_SUBMIT )
                 case ompt_callback_target_submit:
 #endif
 #if HAVE( OMPT_CALLBACK_TARGET_SUBMIT_EMI )
                 case ompt_callback_target_submit_emi:
 #endif
-                {
+                    {
 #if HAVE( OMPT_RECORD_TARGET_SUBMIT_EMI )
-                    ompt_record_target_submit_emi_t kernel = record->record.target_submit_emi;
+                        ompt_record_target_submit_emi_t kernel = record->record.target_submit_emi;
 #elif HAVE( OMPT_RECORD_TARGET_KERNEL )
-                    ompt_record_target_kernel_t kernel = record->record.target_kernel;
+                        ompt_record_target_kernel_t kernel = record->record.target_kernel;
 #endif
-                    atomic_printf( "[%s] time = %lu | thread_id = %lu | target_id = %lu | host_op_id = %lu | "
-                                   "requested_num_teams = %u | granted_num_teams = %u | end_time = %lu\n",
-                                   __FUNCTION__,
-                                   record->time,
-                                   record->thread_id,
-                                   record->target_id,
-                                   kernel.host_op_id,
-                                   kernel.requested_num_teams,
-                                   kernel.granted_num_teams,
-                                   kernel.end_time );
-                    break;
-                }
+                        atomic_printf( "[%s] time = %lu | thread_id = %lu | target_id = %lu | host_op_id = %lu | "
+                                       "requested_num_teams = %u | granted_num_teams = %u | end_time = %lu\n",
+                                       __FUNCTION__,
+                                       record->time,
+                                       record->thread_id,
+                                       record->target_id,
+                                       kernel.host_op_id,
+                                       kernel.requested_num_teams,
+                                       kernel.granted_num_teams,
+                                       kernel.end_time );
+                        break;
+                    }
                 default:
                     assert( false && "Unexpected ompt_record_ompt_t type" );
             }
