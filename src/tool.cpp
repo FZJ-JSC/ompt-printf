@@ -1575,7 +1575,7 @@ callback_buffer_request( int device_num, ompt_buffer_t** buffer,
     }
 }
 
-void
+static void
 device_tracing_thread_begin( const char* invoker, const ompt_record_ompt_t* record )
 {
     atomic_printf(
@@ -1588,7 +1588,7 @@ device_tracing_thread_begin( const char* invoker, const ompt_record_ompt_t* reco
         );
 }
 
-void
+static void
 device_tracing_parallel_begin( const char* invoker, const ompt_record_ompt_t* record )
 {
     atomic_printf(
@@ -1607,7 +1607,7 @@ device_tracing_parallel_begin( const char* invoker, const ompt_record_ompt_t* re
         );
 }
 
-void
+static void
 device_tracing_parallel_end( const char* invoker, const ompt_record_ompt_t* record )
 {
     atomic_printf(
@@ -1624,7 +1624,7 @@ device_tracing_parallel_end( const char* invoker, const ompt_record_ompt_t* reco
         );
 }
 
-void
+static void
 device_tracing_work( const char* invoker, const ompt_record_ompt_t* record )
 {
     atomic_printf(
@@ -1644,7 +1644,7 @@ device_tracing_work( const char* invoker, const ompt_record_ompt_t* record )
         );
 }
 
-void
+static void
 device_tracing_dispatch( const char* invoker, const ompt_record_ompt_t* record )
 {
     atomic_printf(
@@ -1661,7 +1661,7 @@ device_tracing_dispatch( const char* invoker, const ompt_record_ompt_t* record )
         );
 }
 
-void
+static void
 device_tracing_task_create( const char* invoker, const ompt_record_ompt_t* record )
 {
     atomic_printf(
@@ -1679,7 +1679,7 @@ device_tracing_task_create( const char* invoker, const ompt_record_ompt_t* recor
         );
 }
 
-void
+static void
 device_tracing_dependences( const char* invoker, const ompt_record_ompt_t* record )
 {
     atomic_printf(
@@ -1696,7 +1696,7 @@ device_tracing_dependences( const char* invoker, const ompt_record_ompt_t* recor
         );
 }
 
-void
+static void
 device_tracing_task_schedule( const char* invoker, const ompt_record_ompt_t* record )
 {
     atomic_printf(
@@ -1712,7 +1712,7 @@ device_tracing_task_schedule( const char* invoker, const ompt_record_ompt_t* rec
         );
 }
 
-void
+static void
 device_tracing_implicit_task( const char* invoker, const ompt_record_ompt_t* record )
 {
     atomic_printf(
@@ -1731,7 +1731,7 @@ device_tracing_implicit_task( const char* invoker, const ompt_record_ompt_t* rec
         );
 }
 
-void
+static void
 device_tracing_masked( const char* invoker, const ompt_record_ompt_t* record )
 {
     atomic_printf(
@@ -1748,7 +1748,7 @@ device_tracing_masked( const char* invoker, const ompt_record_ompt_t* record )
         );
 }
 
-void
+static void
 device_tracing_sync_region( const char* invoker, const ompt_record_ompt_t* record )
 {
     atomic_printf(
@@ -1766,7 +1766,7 @@ device_tracing_sync_region( const char* invoker, const ompt_record_ompt_t* recor
         );
 }
 
-void
+static void
 device_tracing_mutex_acquire( const char* invoker, const ompt_record_ompt_t* record )
 {
     atomic_printf(
@@ -1784,7 +1784,7 @@ device_tracing_mutex_acquire( const char* invoker, const ompt_record_ompt_t* rec
         );
 }
 
-void
+static void
 device_tracing_mutex_acquired( const char* invoker, const ompt_record_ompt_t* record )
 {
     atomic_printf(
@@ -1800,7 +1800,7 @@ device_tracing_mutex_acquired( const char* invoker, const ompt_record_ompt_t* re
         );
 }
 
-void
+static void
 device_tracing_mutex_released( const char* invoker, const ompt_record_ompt_t* record )
 {
     atomic_printf(
@@ -1816,7 +1816,7 @@ device_tracing_mutex_released( const char* invoker, const ompt_record_ompt_t* re
         );
 }
 
-void
+static void
 device_tracing_nest_lock( const char* invoker, const ompt_record_ompt_t* record )
 {
     atomic_printf(
@@ -1832,7 +1832,7 @@ device_tracing_nest_lock( const char* invoker, const ompt_record_ompt_t* record 
         );
 }
 
-void
+static void
 device_tracing_flush( const char* invoker, const ompt_record_ompt_t* record )
 {
     atomic_printf(
@@ -1845,7 +1845,7 @@ device_tracing_flush( const char* invoker, const ompt_record_ompt_t* record )
         );
 }
 
-void
+static void
 device_tracing_cancel( const char* invoker, const ompt_record_ompt_t* record )
 {
     atomic_printf(
@@ -1861,7 +1861,7 @@ device_tracing_cancel( const char* invoker, const ompt_record_ompt_t* record )
         );
 }
 
-void
+static void
 device_tracing_control_tool( const char* invoker, const ompt_record_ompt_t* record )
 {
     atomic_printf(
@@ -1877,7 +1877,7 @@ device_tracing_control_tool( const char* invoker, const ompt_record_ompt_t* reco
         );
 }
 
-void
+static void
 device_tracing_error( const char* invoker, const ompt_record_ompt_t* record )
 {
     // Not implemented by some runtimes, e.g. LLVM 20.1.8. Since it's hard to check
@@ -1906,7 +1906,7 @@ device_tracing_target( const char* invoker, const ompt_record_ompt_t* record )
                    target.codeptr_ra );
 }
 
-void
+static void
 device_tracing_target_data_op( const char* invoker, const ompt_record_ompt_t* record )
 {
 #if HAVE( OMPT_RECORD_TARGET_DATA_OP_EMI )
@@ -1965,7 +1965,7 @@ device_tracing_target_map( const char* invoker, const ompt_record_ompt_t* record
     }
 }
 
-void
+static void
 device_tracing_target_submit( const char* invoker, const ompt_record_ompt_t* record )
 {
 #if HAVE( OMPT_RECORD_TARGET_SUBMIT_EMI )
