@@ -1884,6 +1884,107 @@ device_tracing_error( const char* invoker, const ompt_record_ompt_t* record )
     // for, ignore until implemented by some runtimes.
 }
 
+void
+device_tracing_target( const char* invoker, const ompt_record_ompt_t* record )
+{
+#if HAVE( OMPT_RECORD_TARGET_EMI )
+    ompt_record_target_emi_t target = record->record.target_emi;
+#elif HAVE( OMPT_RECORD_TARGET )
+    ompt_record_target_t target = record->record.target;
+#endif
+    atomic_printf( "[%s] type = target | time = %lu | thread_id = %lu | target_id = %lu | kind = %s | "
+                   "endpoint = %s | device_num = %d | task_id = %lu | target_id = %lu | codeptr_ra = %p\n",
+                   invoker,
+                   record->time,
+                   record->thread_id,
+                   record->target_id,
+                   target2string( target.kind ).c_str(),
+                   endpoint2string( target.endpoint ).c_str(),
+                   target.device_num,
+                   target.task_id,
+                   target.target_id,
+                   target.codeptr_ra );
+}
+
+void
+device_tracing_target_data_op( const char* invoker, const ompt_record_ompt_t* record )
+{
+#if HAVE( OMPT_RECORD_TARGET_DATA_OP_EMI )
+    ompt_record_target_data_op_emi_t data_op = record->record.target_data_op_emi;
+#elif HAVE( OMPT_RECORD_TARGET_DATA_OP )
+    ompt_record_target_data_op_t data_op = record->record.target_data_op;
+#endif
+    atomic_printf( "[%s] type = target_data_op | time = %lu | thread_id = %lu | target_id = %lu | host_op_id = %lu | "
+                   "optype = %s | src_addr = %p | src_device_num = %d | dest_addr = %p | "
+                   "dest_device_num = %d | bytes = %lu | end_time = %lu | codeptr_ra = %p\n",
+                   invoker,
+                   record->time,
+                   record->thread_id,
+                   record->target_id,
+                   data_op.host_op_id,
+                   data_op2string( data_op.optype ).c_str(),
+                   data_op.src_addr,
+                   data_op.src_device_num,
+                   data_op.dest_addr,
+                   data_op.dest_device_num,
+                   data_op.bytes,
+                   data_op.end_time,
+                   data_op.codeptr_ra );
+}
+
+void
+device_tracing_target_map( const char* invoker, const ompt_record_ompt_t* record )
+{
+#if HAVE( OMPT_RECORD_TARGET_MAP_EMI )
+    ompt_record_target_map_emi_t map = record->record.target_map_emi;
+#elif HAVE( OMPT_RECORD_TARGET_MAP )
+    ompt_record_target_map_t map = record->record.target_map;
+#endif
+    atomic_printf( "[%s] type = target_map | time = %lu | thread_id = %lu | target_id = %lu | target_id = %lu | "
+                   "nitems = %u | codeptr_ra = %p\n",
+                   invoker,
+                   record->time,
+                   record->thread_id,
+                   record->target_id,
+                   map.target_id,
+                   map.nitems,
+                   map.codeptr_ra );
+    for ( unsigned int i = 0; i < map.nitems; ++i )
+    {
+        atomic_printf(
+            "[%s] type = target_map | host_addr[%d] = %p | device_addr[%d] = %p | bytes[%d] = %lu | mapping_flags[%d] = %s\n",
+            invoker,
+            i,
+            map.host_addr[ i ],
+            i,
+            map.device_addr[ i ],
+            i,
+            map.bytes[ i ],
+            i,
+            map_flag2string( record->record.target_map.mapping_flags[ i ] ).c_str() );
+    }
+}
+
+void
+device_tracing_target_submit( const char* invoker, const ompt_record_ompt_t* record )
+{
+#if HAVE( OMPT_RECORD_TARGET_SUBMIT_EMI )
+    ompt_record_target_submit_emi_t kernel = record->record.target_submit_emi;
+#elif HAVE( OMPT_RECORD_TARGET_KERNEL )
+    ompt_record_target_kernel_t kernel = record->record.target_kernel;
+#endif
+    atomic_printf( "[%s] type = target_submit | time = %lu | thread_id = %lu | target_id = %lu | host_op_id = %lu | "
+                   "requested_num_teams = %u | granted_num_teams = %u | end_time = %lu\n",
+                   invoker,
+                   record->time,
+                   record->thread_id,
+                   record->target_id,
+                   kernel.host_op_id,
+                   kernel.requested_num_teams,
+                   kernel.granted_num_teams,
+                   kernel.end_time );
+}
+
 template<printf_mode mode>
 void
 callback_buffer_complete( int                  device_num,
@@ -1990,7 +2091,7 @@ callback_buffer_complete( int                  device_num,
                     device_tracing_control_tool( __FUNCTION__, record );
                     break;
                 case ompt_callback_error:
-                    device_tracing_cancel( __FUNCTION__, record );
+                    device_tracing_error( __FUNCTION__, record );
                     break;
 #if HAVE( OMPT_CALLBACK_TARGET )
                 case ompt_callback_target:
@@ -1998,117 +2099,32 @@ callback_buffer_complete( int                  device_num,
 #if HAVE( OMPT_CALLBACK_TARGET_EMI )
                 case ompt_callback_target_emi:
 #endif
-                    {
-#if HAVE( OMPT_RECORD_TARGET_EMI )
-                        ompt_record_target_emi_t target = record->record.target_emi;
-#elif HAVE( OMPT_RECORD_TARGET )
-                        ompt_record_target_t target = record->record.target;
-#endif
-                        atomic_printf( "[%s] time = %lu | thread_id = %lu | target_id = %lu | kind = %s | "
-                                       "endpoint = %s | device_num = %d | task_id = %lu | target_id = %lu | codeptr_ra = %p\n",
-                                       __FUNCTION__,
-                                       record->time,
-                                       record->thread_id,
-                                       record->target_id,
-                                       target2string( target.kind ).c_str(),
-                                       endpoint2string( target.endpoint ).c_str(),
-                                       target.device_num,
-                                       target.task_id,
-                                       target.target_id,
-                                       target.codeptr_ra );
-                        break;
-                    }
+                    device_tracing_target( __FUNCTION__, record );
+                    break;
 #if HAVE( OMPT_CALLBACK_TARGET_DATA_OP )
                 case ompt_callback_target_data_op:
 #endif
 #if HAVE( OMPT_CALLBACK_TARGET_DATA_OP_EMI )
                 case ompt_callback_target_data_op_emi:
 #endif
-                    {
-#if HAVE( OMPT_RECORD_TARGET_DATA_OP_EMI )
-                        ompt_record_target_data_op_emi_t data_op = record->record.target_data_op_emi;
-#elif HAVE( OMPT_RECORD_TARGET_DATA_OP )
-                        ompt_record_target_data_op_t data_op = record->record.target_data_op;
-#endif
-                        atomic_printf( "[%s] time = %lu | thread_id = %lu | target_id = %lu | host_op_id = %lu | "
-                                       "optype = %s | src_addr = %p | src_device_num = %d | dest_addr = %p | "
-                                       "dest_device_num = %d | bytes = %lu | end_time = %lu | codeptr_ra = %p\n",
-                                       __FUNCTION__,
-                                       record->time,
-                                       record->thread_id,
-                                       record->target_id,
-                                       data_op.host_op_id,
-                                       data_op2string( data_op.optype ).c_str(),
-                                       data_op.src_addr,
-                                       data_op.src_device_num,
-                                       data_op.dest_addr,
-                                       data_op.dest_device_num,
-                                       data_op.bytes,
-                                       data_op.end_time,
-                                       data_op.codeptr_ra );
-                        break;
-                    }
+                    device_tracing_target_data_op( __FUNCTION__, record );
+                    break;
 #if HAVE( OMPT_CALLBACK_TARGET_MAP )
                 case ompt_callback_target_map:
 #endif
 #if HAVE( OMPT_CALLBACK_TARGET_MAP_EMI )
                 case ompt_callback_target_map_emi:
 #endif
-                    {
-#if HAVE( OMPT_RECORD_TARGET_MAP_EMI )
-                        ompt_record_target_map_emi_t map = record->record.target_map_emi;
-#elif HAVE( OMPT_RECORD_TARGET_MAP )
-                        ompt_record_target_map_t map = record->record.target_map;
-#endif
-                        atomic_printf( "[%s] time = %lu | thread_id = %lu | target_id = %lu | target_id = %lu | "
-                                       "nitems = %u | codeptr_ra = %p\n",
-                                       __FUNCTION__,
-                                       record->time,
-                                       record->thread_id,
-                                       record->target_id,
-                                       map.target_id,
-                                       map.nitems,
-                                       map.codeptr_ra );
-                        for ( unsigned int i = 0; i < map.nitems; ++i )
-                        {
-                            atomic_printf(
-                                "[%s] host_addr[%d] = %p | device_addr[%d] = %p | bytes[%d] = %lu | mapping_flags[%d] = %s\n",
-                                __FUNCTION__,
-                                i,
-                                map.host_addr[ i ],
-                                i,
-                                map.device_addr[ i ],
-                                i,
-                                map.bytes[ i ],
-                                i,
-                                map_flag2string( record->record.target_map.mapping_flags[ i ] ).c_str() );
-                        }
-                        break;
-                    }
+                    device_tracing_target_map( __FUNCTION__, record );
+                    break;
 #if HAVE( OMPT_CALLBACK_TARGET_SUBMIT )
                 case ompt_callback_target_submit:
 #endif
 #if HAVE( OMPT_CALLBACK_TARGET_SUBMIT_EMI )
                 case ompt_callback_target_submit_emi:
 #endif
-                    {
-#if HAVE( OMPT_RECORD_TARGET_SUBMIT_EMI )
-                        ompt_record_target_submit_emi_t kernel = record->record.target_submit_emi;
-#elif HAVE( OMPT_RECORD_TARGET_KERNEL )
-                        ompt_record_target_kernel_t kernel = record->record.target_kernel;
-#endif
-                        atomic_printf( "[%s] time = %lu | thread_id = %lu | target_id = %lu | host_op_id = %lu | "
-                                       "requested_num_teams = %u | granted_num_teams = %u | end_time = %lu\n",
-                                       __FUNCTION__,
-                                       record->time,
-                                       record->thread_id,
-                                       record->target_id,
-                                       kernel.host_op_id,
-                                       kernel.requested_num_teams,
-                                       kernel.granted_num_teams,
-                                       kernel.end_time );
-                        break;
-                    }
+                    device_tracing_target_submit( __FUNCTION__, record );
+                    break;
                 default:
                     assert( false && "Unexpected ompt_record_ompt_t type" );
             }
