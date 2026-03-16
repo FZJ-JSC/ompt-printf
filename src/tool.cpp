@@ -1635,7 +1635,11 @@ device_tracing_work( const char* invoker, const ompt_record_ompt_t* record )
         record->time,
         record->thread_id,
         record->target_id,
+#if HAVE( OMPT_RECORD_WORK_WSTYPE )
+        work2string( record->record.work.wstype ).c_str(),
+#else
         work2string( record->record.work.work_type ).c_str(),
+#endif
         endpoint2string( record->record.work.endpoint ).c_str(),
         record->record.work.parallel_id,
         record->record.work.task_id,
@@ -1731,6 +1735,7 @@ device_tracing_implicit_task( const char* invoker, const ompt_record_ompt_t* rec
         );
 }
 
+#if HAVE( OMPT_CALLBACK_MASKED )
 static void
 device_tracing_masked( const char* invoker, const ompt_record_ompt_t* record )
 {
@@ -1747,6 +1752,7 @@ device_tracing_masked( const char* invoker, const ompt_record_ompt_t* record )
         record->record.masked.codeptr_ra
         );
 }
+#endif
 
 static void
 device_tracing_sync_region( const char* invoker, const ompt_record_ompt_t* record )
@@ -2063,9 +2069,11 @@ callback_buffer_complete( int                  device_num,
                 case ompt_callback_implicit_task:
                     device_tracing_implicit_task( __FUNCTION__, record );
                     break;
+#if HAVE( OMPT_CALLBACK_MASKED )
                 case ompt_callback_masked:
                     device_tracing_masked( __FUNCTION__, record );
                     break;
+#endif
                 case ompt_callback_sync_region:
                     device_tracing_sync_region( __FUNCTION__, record );
                     break;
@@ -2090,9 +2098,11 @@ callback_buffer_complete( int                  device_num,
                 case ompt_callback_control_tool:
                     device_tracing_control_tool( __FUNCTION__, record );
                     break;
+#if HAVE( OMPT_CALLBACK_ERROR )
                 case ompt_callback_error:
                     device_tracing_error( __FUNCTION__, record );
                     break;
+#endif
 #if HAVE( OMPT_CALLBACK_TARGET )
                 case ompt_callback_target:
 #endif
@@ -2284,7 +2294,9 @@ callback_device_initialize( int                    device_num,
         ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_dependences, false );
         ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_task_schedule, false );
         ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_implicit_task, false );
+#if HAVE( OMPT_CALLBACK_MASKED )
         ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_masked, false );
+#endif
         ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_sync_region, false );
         ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_mutex_acquire, false );
         ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_mutex_acquired, false );
@@ -2293,7 +2305,9 @@ callback_device_initialize( int                    device_num,
         ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_flush, false );
         ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_cancel, false );
         ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_control_tool, false );
+#if HAVE( OMPT_CALLBACK_ERROR )
         ENABLE_DEVICE_TRACING_CALLBACK( ompt_callback_error, false );
+#endif
 
 #undef ENABLE_DEVICE_TRACING_CALLBACK
         if ( !new_device->device_functions.start_trace( new_device->address, &callback_buffer_request<mode>, &callback_buffer_complete<mode> ) )
@@ -2882,7 +2896,7 @@ tool_initialize( ompt_function_lookup_t lookup,
      *   ompt_callback_target_data_op_emi       = 34, ADDED_51
      *   ompt_callback_target_submit_emi        = 35, ADDED_51
      *   ompt_callback_target_map_emi           = 36, ADDED_51
-     *   ompt_callback_error                    = 37
+     *   ompt_callback_error                    = 37, ADDED_51
      * } ompt_callbacks_t; */
 
     /* Register callbacks for the host side */

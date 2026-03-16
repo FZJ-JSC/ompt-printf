@@ -34,12 +34,13 @@
 
 include( CheckIncludeFile )
 include( CheckTypeSize )
+include( CheckCXXSourceCompiles )
 
 function( OMPT_HEADER_CHECK )
 
     check_include_file( "omp-tools.h" HAVE_OMP_TOOLS_HEADER )
     if( HAVE_OMP_TOOLS_HEADER )
-    set( CMAKE_EXTRA_INCLUDE_FILES "omp-tools.h" )
+        set( CMAKE_EXTRA_INCLUDE_FILES "omp-tools.h" )
         # OpenMP 5.1 checks
         # Check for added callback values
         check_type_size( ompt_callback_target_emi OMPT_CALLBACK_TARGET_EMI LANGUAGE C )
@@ -47,6 +48,7 @@ function( OMPT_HEADER_CHECK )
         check_type_size( ompt_callback_target_submit_emi OMPT_CALLBACK_TARGET_SUBMIT_EMI LANGUAGE C )
         check_type_size( ompt_callback_target_map_emi OMPT_CALLBACK_TARGET_MAP_EMI LANGUAGE C )
         check_type_size( ompt_callback_masked OMPT_CALLBACK_MASKED LANGUAGE C )
+        check_type_size( ompt_callback_error OMPT_CALLBACK_ERROR LANGUAGE C )
         # Check for new enum values
         # New fields in ompt_scope_endpoint_t
         check_type_size( ompt_scope_beginend OMPT_SCOPE_BEGINEND LANGUAGE C )
@@ -130,10 +132,28 @@ function( OMPT_HEADER_CHECK )
         check_type_size( ompt_record_target_data_op_t OMPT_RECORD_TARGET_DATA_OP LANGUAGE C )
         check_type_size( ompt_record_target_map_t OMPT_RECORD_TARGET_MAP LANGUAGE C )
         check_type_size( ompt_record_target_kernel_t OMPT_RECORD_TARGET_KERNEL LANGUAGE C )
+
+        # Check for more niche cases
+
+        # ompt_record_work_t uses wstype in OpenMP v5.0, work_type in OpenMP v5.1 and newer.
+        check_cxx_source_compiles( [[
+        #include <omp-tools.h>
+        int main( int argc, char** argv )
+        {
+            ompt_record_work_t work;
+            return work.wstype;
+        }
+        ]] HAVE_OMPT_RECORD_WORK_WSTYPE )
+        if( NOT HAVE_OMPT_RECORD_WORK_WSTYPE )
+            set( HAVE_OMPT_RECORD_WORK_WSTYPE FALSE PARENT_SCOPE )
+        else()
+            set( HAVE_OMPT_RECORD_WORK_WSTYPE TRUE PARENT_SCOPE )
+        endif()
         set( CMAKE_EXTRA_INCLUDE_FILES )
     endif()
 
 endfunction()
+
 
 set( COMPILER_TOOLCHAIN GCC CACHE STRING "Set compiler toolchain. Will overwrite native CMake commands" )
 function( OMPT_ADDITIONAL_CFLAGS )
