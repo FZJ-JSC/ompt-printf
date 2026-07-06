@@ -2653,8 +2653,8 @@ callback_target_data_op_emi( ompt_scope_endpoint_t endpoint,
              * const uint64_t *dimensions;
              * } ompt_subvolume_t; */
 #if HAVE( OMPT_SUBVOLUME )
-            ompt_subvolume_t* subvolume_src  = ( ompt_subvolume_t* )dev1_addr;
-            ompt_subvolume_t* subvolume_dest = ( ompt_subvolume_t* )dev2_addr;
+            ompt_subvolume_t* subvolume_src  = ( ompt_subvolume_t* )src_addr /*dev1_addr*/;
+            ompt_subvolume_t* subvolume_dest = ( ompt_subvolume_t* )dest_addr /*dev2_addr*/;
 
             atomic_printf( "[%s] src_base = %p | src_size = %lu | src_num_dims = %lu | src_volume = %p | "
                            "src_offsets = %p | src_dimensions = %p\n",
