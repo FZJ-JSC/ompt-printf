@@ -41,6 +41,16 @@ on:
         branches: [ "main", "openmp-52", "openmp-60" ]
 
 jobs:
+    job_ubuntu-26-clang:
+        runs-on: ubuntu-latest
+        container: ubuntu:26.04
+        steps:
+            - uses: actions/checkout@v4
+            - run: apt-get update && apt-get upgrade -y
+            - run: apt-get install -y clang libomp-dev cmake
+            - uses: ./.github/actions/build-and-test-ompt-printf
+              with:
+                compiler-toolchain: Clang
     job_ubuntu-24-clang:
         runs-on: ubuntu-latest
         container: ubuntu:24.04
@@ -56,16 +66,6 @@ jobs:
         container: ubuntu:22.04
         steps:
             - uses: actions/checkout@v4
-            - run: apt-get update && apt-get upgrade -y
-            - run: apt-get install -y clang libomp-dev cmake
-            - uses: ./.github/actions/build-and-test-ompt-printf
-              with:
-                compiler-toolchain: Clang
-    job_ubuntu-20-clang:
-        runs-on: ubuntu-latest
-        container: ubuntu:20.04
-        steps:
-            - uses: actions/checkout@v4
             - run: export DEBIAN_FRONTEND=noninteractive
             - run: export TZ=Etc/UTC
             - run: apt-get update && apt-get upgrade -y
@@ -73,9 +73,9 @@ jobs:
             - uses: ./.github/actions/build-and-test-ompt-printf
               with:
                 compiler-toolchain: Clang
-    job_debian-12-clang:
+    job_debian-13-clang:
         runs-on: ubuntu-latest
-        container: debian:12
+        container: debian:13
         steps:
             - uses: actions/checkout@v4
             - run: apt-get update && apt-get upgrade -y
@@ -83,9 +83,9 @@ jobs:
             - uses: ./.github/actions/build-and-test-ompt-printf
               with:
                 compiler-toolchain: Clang
-    job_debian-11-clang:
+    job_debian-12-clang:
         runs-on: ubuntu-latest
-        container: debian:11
+        container: debian:12
         steps:
             - uses: actions/checkout@v4
             - run: apt-get update && apt-get upgrade -y
@@ -103,16 +103,6 @@ jobs:
             - uses: ./.github/actions/build-and-test-ompt-printf
               with:
                 compiler-toolchain: Clang
-    job_almalinux-8-clang:
-        runs-on: ubuntu-latest
-        container: almalinux:8
-        steps:
-            - uses: actions/checkout@v4
-            - run: dnf update -y
-            - run: dnf install -y clang cmake
-            - uses: ./.github/actions/build-and-test-ompt-printf
-              with:
-                compiler-toolchain: Clang
     job_almalinux-9-clang:
         runs-on: ubuntu-latest
         container: almalinux:9
@@ -123,9 +113,9 @@ jobs:
             - uses: ./.github/actions/build-and-test-ompt-printf
               with:
                 compiler-toolchain: Clang
-    job_rockylinux-8-clang:
+    job_almalinux-10-clang:
         runs-on: ubuntu-latest
-        container: rockylinux:8
+        container: almalinux:10
         steps:
             - uses: actions/checkout@v4
             - run: dnf update -y
@@ -135,7 +125,7 @@ jobs:
                 compiler-toolchain: Clang
     job_rockylinux-9-clang:
         runs-on: ubuntu-latest
-        container: rockylinux:9
+        container: rockylinux/rockylinux:9
         steps:
             - uses: actions/checkout@v4
             - run: dnf update -y
@@ -143,9 +133,19 @@ jobs:
             - uses: ./.github/actions/build-and-test-ompt-printf
               with:
                 compiler-toolchain: Clang
-    job_fedora-42-clang:
+    job_rockylinux-10-clang:
         runs-on: ubuntu-latest
-        container: fedora:42
+        container: rockylinux/rockylinux:10
+        steps:
+            - uses: actions/checkout@v4
+            - run: dnf update -y
+            - run: dnf install -y clang cmake
+            - uses: ./.github/actions/build-and-test-ompt-printf
+              with:
+                compiler-toolchain: Clang
+    job_fedora-44-clang:
+        runs-on: ubuntu-latest
+        container: fedora:44
         steps:
           - uses: actions/checkout@v4
           - run: dnf update -y
@@ -153,9 +153,9 @@ jobs:
           - uses: ./.github/actions/build-and-test-ompt-printf
             with:
               compiler-toolchain: Clang   
-    job_fedora-41-clang:    
+    job_fedora-43-clang:
         runs-on: ubuntu-latest
-        container: fedora:41
+        container: fedora:43
         steps:
             - uses: actions/checkout@v4
             - run: dnf update -y
@@ -173,9 +173,9 @@ jobs:
           - uses: ./.github/actions/build-and-test-ompt-printf
             with:
               compiler-toolchain: Clang
-    job_opensuse-leap-15-clang:
+    job_opensuse-leap-16-clang:
         runs-on: ubuntu-latest
-        container: opensuse/leap:15.6
+        container: opensuse/leap:16.0
         steps:
           - run: zypper update -y
           - run: zypper install -y --type pattern devel_basis
@@ -194,9 +194,9 @@ jobs:
           - uses: ./.github/actions/build-and-test-ompt-printf
             with:
               compiler-toolchain: Clang
-    job_intel-oneapi-2025-1-0:
+    job_intel-oneapi-2026-1-0:
         runs-on: ubuntu-latest
-        container: intel/oneapi:2025.1.0-0-devel-ubuntu24.04
+        container: intel/oneapi:2026.1.0-devel-ubuntu26.04
         steps:
           - uses: actions/checkout@v4
           - run: rm -f /etc/apt/sources.list.d/oneAPI.list /etc/apt/sources.list.d/intel-graphics.list
@@ -205,9 +205,9 @@ jobs:
           - uses: ./.github/actions/build-and-test-ompt-printf
             with:
               compiler-toolchain: oneAPI
-    job_intel-oneapi-2025-0-2:
+    job_intel-oneapi-2026-0-0:
         runs-on: ubuntu-latest
-        container: intel/oneapi:2025.0.2-0-devel-ubuntu24.04
+        container: intel/oneapi:2026.0.0-devel-ubuntu24.04
         steps:
           - uses: actions/checkout@v4
           - run: rm -f /etc/apt/sources.list.d/oneAPI.list /etc/apt/sources.list.d/intel-graphics.list
@@ -216,9 +216,9 @@ jobs:
           - uses: ./.github/actions/build-and-test-ompt-printf
             with:
               compiler-toolchain: oneAPI
-    job_intel-oneapi-2024-2-1:
+    job_intel-oneapi-2025-3-1:
         runs-on: ubuntu-latest
-        container: intel/oneapi:2024.2.1-0-devel-ubuntu22.04
+        container: intel/oneapi:2025.3.1-0-devel-ubuntu24.04
         steps:
           - uses: actions/checkout@v4
           - run: rm -f /etc/apt/sources.list.d/oneAPI.list /etc/apt/sources.list.d/intel-graphics.list
@@ -258,31 +258,31 @@ jobs:
 #           - uses: ./.github/actions/build-and-test-ompt-printf
 #             with:
 #               compiler-toolchain: NVHPC
+    job_rocm-7-2:
+        runs-on: ubuntu-latest
+        container: rocm/dev-ubuntu-24.04:7.2.4
+        steps:
+          - uses: actions/checkout@v4
+          - run: apt-get update -y
+          - run: apt-get install -y cmake
+          - uses: ./.github/actions/build-and-test-ompt-printf
+            with:
+              compiler-toolchain: AMDClang
+              extra-path: /opt/rocm/bin
+    job_rocm-7-1:
+        runs-on: ubuntu-latest
+        container: rocm/dev-ubuntu-24.04:7.1.1
+        steps:
+          - uses: actions/checkout@v4
+          - run: apt-get update -y
+          - run: apt-get install -y cmake
+          - uses: ./.github/actions/build-and-test-ompt-printf
+            with:
+              compiler-toolchain: AMDClang
+              extra-path: /opt/rocm/bin
     job_rocm-6-4:
         runs-on: ubuntu-latest
         container: rocm/dev-ubuntu-22.04:6.4
-        steps:
-          - uses: actions/checkout@v4
-          - run: apt-get update -y
-          - run: apt-get install -y cmake
-          - uses: ./.github/actions/build-and-test-ompt-printf
-            with:
-              compiler-toolchain: AMDClang
-              extra-path: /opt/rocm/bin
-    job_rocm-6-3:
-        runs-on: ubuntu-latest
-        container: rocm/dev-ubuntu-22.04:6.3.4
-        steps:
-          - uses: actions/checkout@v4
-          - run: apt-get update -y
-          - run: apt-get install -y cmake
-          - uses: ./.github/actions/build-and-test-ompt-printf
-            with:
-              compiler-toolchain: AMDClang
-              extra-path: /opt/rocm/bin
-    job_rocm-6-2:
-        runs-on: ubuntu-latest
-        container: rocm/dev-ubuntu-22.04:6.2.4
         steps:
           - uses: actions/checkout@v4
           - run: apt-get update -y
@@ -310,4 +310,3 @@ jobs:
           - uses: ./.github/actions/build-and-test-ompt-printf
             with:
               compiler-toolchain: Clang
-  
