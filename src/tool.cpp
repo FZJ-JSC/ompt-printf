@@ -2219,7 +2219,18 @@ callback_device_initialize( int                    device_num,
         new_device->device_functions.pause_trace = ( ompt_pause_trace_t )lookup( "ompt_pause_trace" );
 #if HAVE( OMPT_GET_BUFFER_LIMITS )
         new_device->device_functions.get_buffer_limits = ( ompt_get_buffer_limits_t )lookup( "ompt_get_buffer_limits" );
-        new_device->device_functions.get_buffer_limits( new_device->address, &new_device->recommended_buffer_amount, &new_device->recommended_buffer_size );
+        if( new_device->device_functions.get_buffer_limits )
+        {
+            new_device->device_functions.get_buffer_limits( new_device->address, &new_device->recommended_buffer_amount, &new_device->recommended_buffer_size );
+        }
+        else
+        {
+            /* We need to set some arbitrary numbers to avoid not allocating any memory.
+             * Per OpenMP spec., this should disable recording events with the device tracing interface.
+             * In reality, this might crash OpenMP runtimes. */
+            new_device->recommended_buffer_amount = 16;
+            new_device->recommended_buffer_size = 8192;
+        }
 #endif
 
         /* Register buffer events */
