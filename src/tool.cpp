@@ -2002,7 +2002,6 @@ callback_buffer_complete( int                  device_num,
     if constexpr ( mode == printf_mode::callback )
     {
         print_function_name( __FUNCTION__ );
-        return;
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
@@ -2013,7 +2012,6 @@ callback_buffer_complete( int                  device_num,
                        bytes,
                        begin,
                        buffer_owned );
-        return;
     }
 
     /* AMD implementation might return buffer complete callback to indicate buffer
@@ -2024,6 +2022,18 @@ callback_buffer_complete( int                  device_num,
     {
         if ( buffer_owned )
         {
+            delete[] ( ompt_record_ompt_t* )buffer;
+        }
+        return;
+    }
+
+    if constexpr ( mode < printf_mode::callback_include_args )
+    {
+        if ( buffer_owned )
+        {
+#if HAVE( OMPT_GET_BUFFER_LIMITS )
+            get_devices()[ device_num ]->allocated_buffers--;
+#endif
             delete[] ( ompt_record_ompt_t* )buffer;
         }
         return;
