@@ -1556,7 +1556,6 @@ callback_buffer_request( int device_num, ompt_buffer_t** buffer,
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
 #if HAVE( OMPT_GET_BUFFER_LIMITS )
-#if HAVE( OMPT_GET_BUFFER_LIMITS )
         atomic_printf( "[%s] device_num = %d | buffer = %p (%d/%d) | bytes = %lu\n",
                        __FUNCTION__,
                        device_num,
@@ -1570,7 +1569,6 @@ callback_buffer_request( int device_num, ompt_buffer_t** buffer,
                        device_num,
                        buffer,
                        *bytes );
-#endif
 #endif
     }
 }
