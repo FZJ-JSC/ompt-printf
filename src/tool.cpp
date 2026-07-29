@@ -1449,15 +1449,51 @@ callback_dispatch( ompt_data_t*    parallel_data,
     }
     else if constexpr ( mode == printf_mode::callback_include_args )
     {
+        std::stringstream additional_info;
+        switch ( kind )
+        {
+            case ompt_dispatch_iteration:
+                /* The value field of the instance argument contains the
+                 * logical iteration number. Hence, skip. */
+                break;
+            case ompt_dispatch_section:
+                /* The ptr field of the instance argument contains the code
+                 * address that identifies the structured block */
+                additional_info << " | codeptr_ra = " << instance.ptr;
+                break;
+#if HAVE( OMPT_DISPATCH_DISTRIBUTE_CHUNK ) || \
+    HAVE( OMPT_DISPATCH_WS_LOOP_CHUNK ) || \
+    HAVE( OMPT_DISPATCH_TASKLOOP_CHUNK )
+#if HAVE( OMPT_DISPATCH_DISTRIBUTE_CHUNK )
+            case ompt_dispatch_distribute_chunk:
+#endif
+#if HAVE( OMPT_DISPATCH_WS_LOOP_CHUNK )
+            case ompt_dispatch_ws_loop_chunk:
+#endif
+#if HAVE( OMPT_DISPATCH_TASKLOOP_CHUNK )
+            case ompt_dispatch_taskloop_chunk:
+#endif
+            {
+                ompt_dispatch_chunk_t* chunk =
+                    static_cast<ompt_dispatch_chunk_t*>(instance.ptr);
+                additional_info << " | start = " << chunk->start;
+                additional_info << " | iterations = " << chunk->iterations;
+                break;
+            }
+#endif
+            default:
+                break;
+        }
         atomic_printf( "[%s] parallel_data->value = %lu (%p) | task_data->value = %lu (%p) | kind = %s | "
-                       "instance->value = %lu\n",
+                       "instance->value = %lu%s\n",
                        __FUNCTION__,
                        parallel_data ? parallel_data->value : unknown_parallel_id,
                        parallel_data,
                        task_data ? task_data->value : unknown_task_id,
                        task_data,
                        dispatch2string( kind ).c_str(),
-                       instance.value );
+                       instance.value,
+                       additional_info.str().c_str() );
     }
 }
 
