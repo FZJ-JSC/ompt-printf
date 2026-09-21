@@ -295,7 +295,7 @@ jobs:
         runs-on: ubuntu-latest
         container: ubuntu:24.04
         env:
-          LLVM_DEVELOPMENT_VERSION: 23
+          LLVM_DEVELOPMENT_VERSION: 24
         steps:
           - uses: actions/checkout@v4
           - run: apt-get update
