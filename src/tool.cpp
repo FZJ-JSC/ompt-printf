@@ -1958,12 +1958,14 @@ device_tracing_control_tool( const char* invoker, const ompt_record_ompt_t* reco
         );
 }
 
+#if HAVE( OMPT_CALLBACK_ERROR )
 static void
 device_tracing_error( const char* invoker, const ompt_record_ompt_t* record )
 {
     // Not implemented by some runtimes, e.g. LLVM 20.1.8. Since it's hard to check
     // for, ignore until implemented by some runtimes.
 }
+#endif
 
 void
 device_tracing_target( const char* invoker, const ompt_record_ompt_t* record )
