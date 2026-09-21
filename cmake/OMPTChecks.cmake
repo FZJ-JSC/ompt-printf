@@ -133,6 +133,16 @@ function( OMPT_HEADER_CHECK )
         check_type_size( ompt_record_target_map_t OMPT_RECORD_TARGET_MAP LANGUAGE C )
         check_type_size( ompt_record_target_kernel_t OMPT_RECORD_TARGET_KERNEL LANGUAGE C )
 
+        # OpenMP TR15 / 6.1 checks
+        # New enum values
+        check_type_size( ompt_sync_region_undeferrable_task OMPT_SYNC_REGION_UNDEFERRABLE_TASK LANGUAGE C )
+        check_type_size( ompt_task_undeferrable OMPT_TASK_UNDEFERRABLE LANGUAGE C )
+        check_type_size( ompt_target_data_implementation_specific OMPT_TARGET_DATA_IMPLEMENTATION_SPECIFIC LANGUAGE C )
+        # New entry point
+        check_type_size( ompt_set_selective_callback_t OMPT_SET_SELECTIVE_CALLBACK LANGUAGE C )
+        # New device lookup
+        check_type_size( ompt_get_uid_from_device_t OMPT_GET_UID_FROM_DEVICE LANGUAGE C )
+
         # Check for more niche cases
 
         # ompt_record_work_t uses wstype in OpenMP v5.0, work_type in OpenMP v5.1 and newer.
