@@ -241,18 +241,19 @@ parallel_flag2string( uint32_t flags )
 }
 
 /* typedef enum ompt_task_flag_t {
- *   ompt_task_initial    = 0x00000001,
- *   ompt_task_implicit   = 0x00000002,
- *   ompt_task_explicit   = 0x00000004,
- *   ompt_task_target     = 0x00000008,
- *   ompt_task_taskwait   = 0x00000010, ADDED_51
- *   ompt_task_importing  = 0x02000000, ADDED_60
- *   ompt_task_exporting  = 0x04000000, ADDED_60
- *   ompt_task_undeferred = 0x08000000,
- *   ompt_task_untied     = 0x10000000,
- *   ompt_task_final      = 0x20000000,
- *   ompt_task_mergeable  = 0x40000000,
- *   ompt_task_merged     = 0x80000000
+ *   ompt_task_initial      = 0x00000001,
+ *   ompt_task_implicit     = 0x00000002,
+ *   ompt_task_explicit     = 0x00000004,
+ *   ompt_task_target       = 0x00000008,
+ *   ompt_task_taskwait     = 0x00000010, ADDED_51
+ *   ompt_task_undeferrable = 0x01000000, ADDED_61
+ *   ompt_task_importing    = 0x02000000, ADDED_60
+ *   ompt_task_exporting    = 0x04000000, ADDED_60
+ *   ompt_task_undeferred   = 0x08000000,
+ *   ompt_task_untied       = 0x10000000,
+ *   ompt_task_final        = 0x20000000,
+ *   ompt_task_mergeable    = 0x40000000,
+ *   ompt_task_merged       = 0x80000000
  * } ompt_task_flag_t; */
 static inline std::string
 task_flag2string( uint32_t flags )
@@ -286,6 +287,13 @@ task_flag2string( uint32_t flags )
     }
 #endif
 
+#if HAVE( OMPT_TASK_UNDEFERRABLE )
+    if ( flags & ompt_task_undeferrable )
+    {
+        result << "_undeferrable";
+        flags -= ompt_task_undeferrable;
+    }
+#endif
     if ( flags & ompt_task_undeferred )
     {
         result << "_undeferred";
@@ -588,6 +596,7 @@ work2string( ompt_work_t t )
  *     ompt_sync_region_barrier_implicit_workshare = 8, ADDED_51
  *     ompt_sync_region_barrier_implicit_parallel  = 9, ADDED_51
  *     ompt_sync_region_barrier_teams              = 10 ADDED_51
+ *     ompt_sync_region_undeferrable_task          = 11, ADDED_61
  * } ompt_sync_region_t; */
 static inline std::string
 sync2string( ompt_sync_region_t t )
@@ -624,6 +633,10 @@ sync2string( ompt_sync_region_t t )
         case ompt_sync_region_barrier_teams:
             return "barrier_teams";
 #endif
+#if HAVE( OMPT_SYNC_REGION_UNDEFERRABLE_TASK )
+        case ompt_sync_region_undeferrable_task:
+            return "undeferrable_task";
+#endif
         default:
             assert( false && "Unknown ompt_sync_region_t" );
     }
@@ -647,72 +660,97 @@ sync2string( ompt_sync_region_t t )
  *     ompt_target_data_transfer_async             = 23, ADDED_60
  *     ompt_target_data_memset_async               = 24, ADDED_60
  *     ompt_target_data_transfer_rect_async        = 25, ADDED_60
+ *     ompt_target_data_implementation_specific    = 64, ADDED_61
  * } ompt_target_data_op_t; */
 static inline std::string
-data_op2string( ompt_target_data_op_t t )
+data_op2string( uint64_t t )
 {
+    std::stringstream result;
+#if HAVE( OMPT_TARGET_DATA_IMPLEMENTATION_SPECIFIC )
+    if ( t & ompt_target_data_implementation_specific )
+    {
+        result << "implementation_specific_";
+        t -= ompt_target_data_implementation_specific;
+    }
+#endif
     switch ( t )
     {
         case ompt_target_data_alloc:
-            return "alloc";
+            result << "alloc";
+            break;
 #if HAVE( OMPT_TARGET_DATA_TRANSFER_TO_DEVICE )
         case ompt_target_data_transfer_to_device:
-            return "transfer_to_device";
+            result << "transfer_to_device";
+            break;
 #endif
 #if HAVE( OMPT_TARGET_DATA_TRANSFER_FROM_DEVICE )
         case ompt_target_data_transfer_from_device:
-            return "transfer_from_device";
+            result << "transfer_from_device";
+            break;
 #endif
         case ompt_target_data_delete:
-            return "delete";
+            result << "delete";
+            break;
         case ompt_target_data_associate:
-            return "associate";
+            result << "associate";
+            break;
         case ompt_target_data_disassociate:
-            return "disassociate";
+            result << "disassociate";
+            break;
 #if HAVE( OMPT_TARGET_DATA_TRANSFER )
         case ompt_target_data_transfer:
-            return "transfer";
+            result << "transfer";
+            break;
 #endif
 #if HAVE( OMPT_TARGET_DATA_MEMSET )
         case ompt_target_data_memset:
-            return "memset";
+            result << "memset";
+            break;
 #endif
 #if HAVE( OMPT_TARGET_DATA_TRANSFER_RECT )
         case ompt_target_data_transfer_rect:
-            return "transfer_rect";
+            result << "transfer_rect";
+            break;
 #endif
 #if HAVE( OMPT_TARGET_DATA_ALLOC_ASYNC )
         case ompt_target_data_alloc_async:
-            return "alloc_async";
+            result << "alloc_async";
+            break;
 #endif
 #if HAVE( OMPT_TARGET_DATA_TRANSFER_TO_DEVICE_ASYNC )
         case ompt_target_data_transfer_to_device_async:
-            return "transfer_to_device_async";
+            result << "transfer_to_device_async";
+            break;
 #endif
 #if HAVE( OMPT_TARGET_DATA_TRANSFER_FROM_DEVICE_ASYNC )
         case ompt_target_data_transfer_from_device_async:
-            return "transfer_from_device_async";
+            result << "transfer_from_device_async";
+            break;
 #endif
 #if HAVE( OMPT_TARGET_DATA_DELETE_ASYNC )
         case ompt_target_data_delete_async:
-            return "delete_async";
+            result << "delete_async";
+            break;
 #endif
 #if HAVE( OMPT_TARGET_DATA_TRANSFER_ASYNC )
         case ompt_target_data_transfer_async:
-            return "transfer_async";
+            result << "transfer_async";
+            break;
 #endif
 #if HAVE( OMPT_TARGET_DATA_MEMSET_ASYNC )
         case ompt_target_data_memset_async:
-            return "memset_async";
+            result << "memset_async";
+            break;
 #endif
 #if HAVE( OMPT_TARGET_DATA_TRANSFER_RECT_ASYNC )
         case ompt_target_data_transfer_rect_async:
-            return "transfer_rect_async";
+            result << "transfer_rect_async";
+            break;
 #endif
         default:
             assert( false && "Unknown ompt_target_data_op_t" );
     }
-    return "";
+    return result.str();
 }
 
 /* typedef enum ompt_target_t {
