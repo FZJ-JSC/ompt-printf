@@ -93,7 +93,7 @@ function( OMPT_HEADER_CHECK )
         check_type_size( ompt_target_map_flag_close OMPT_TARGET_MAP_FLAG_CLOSE LANGUAGE C )
         check_type_size( ompt_target_map_flag_shared OMPT_TARGET_MAP_FLAG_SHARED LANGUAGE C )
 
-        # OpenMP TR13 checks
+        # OpenMP 6.0 checks
         # Changed kernel records for device tracing. Renamed non-emi fields to _emi. Old fields are deprecated.
         # Replaced ompt_record_target_kernel_t with ompt_record_target_submit_emi_t. Old name is deprecated.
         check_type_size( ompt_record_target_emi_t OMPT_RECORD_TARGET_EMI LANGUAGE C )
