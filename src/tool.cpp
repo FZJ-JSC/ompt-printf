@@ -94,6 +94,9 @@ typedef struct device_functions_t
 #if HAVE( OMPT_GET_BUFFER_LIMITS )
     ompt_get_buffer_limits_t     get_buffer_limits;  // ADDED_60
 #endif
+#if HAVE( OMPT_GET_UID_FROM_DEVICE )
+    ompt_get_uid_from_device_t   get_uid_from_device;  // ADDED_61
+#endif
 } device_functions_t;
 
 typedef struct device_t
@@ -2304,6 +2307,18 @@ callback_device_initialize( int                    device_num,
              * In reality, this might crash OpenMP runtimes. */
             new_device->recommended_buffer_amount = 16;
             new_device->recommended_buffer_size = 8192;
+        }
+#endif
+#if HAVE( OMPT_GET_UID_FROM_DEVICE )
+        new_device->device_functions.get_uid_from_device = ( ompt_get_uid_from_device_t )lookup( "ompt_get_uid_from_device" );
+        if ( new_device->device_functions.get_uid_from_device )
+        {
+            const char* uid = new_device->device_functions.get_uid_from_device( new_device->address );
+            new_device->name += "( " + std::string( uid ) + " )";
+        }
+        else
+        {
+            new_device->name += "( unknown )";
         }
 #endif
 
